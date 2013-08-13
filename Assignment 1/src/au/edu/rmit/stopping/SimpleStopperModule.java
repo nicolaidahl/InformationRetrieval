@@ -5,20 +5,20 @@ import java.util.HashSet;
 
 public class SimpleStopperModule implements StopperModule 
 {
-	HashSet<String> stoppedWords;
-	
-	public SimpleStopperModule(File file)
-	{
-		stoppedWords = new HashSet<String>();
-		stoppedWords.add("and");
-	}
-	
-	
-	public boolean isStopWord(String word)
-	{
-		if(stoppedWords.contains(word))
-			return true;
-		else
-			return false;
-	}
+    HashSet<String> stoppedWords;
+
+    public SimpleStopperModule(File file)
+    {
+        stoppedWords = new HashSet<String>();
+        stoppedWords.add("and");
+    }
+
+
+    public boolean isStopWord(String word)
+    {
+        if(stoppedWords.contains(word))
+            return true;
+        else
+            return false;
+    }
 }

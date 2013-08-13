@@ -23,10 +23,12 @@ public class SimpleParser
 	ArrayList<String> tokenList;
 	StopperModule stopperModule;
 	IndexerModule indexerModule;
+	DocIdHandler documentHandler;
 	
 	
 	boolean inDocument = false;
-	String currentDocId = "";
+	String rawDocId = "";
+	int currentDocId;
 	
 	
 	public SimpleParser(StopperModule stopperModule, IndexerModule indexerModule)
@@ -34,6 +36,7 @@ public class SimpleParser
 		tokenList = new ArrayList<String>();
 		this.stopperModule = stopperModule;
 		this.indexerModule = indexerModule;
+		documentHandler = new DocIdHandler();
 	}
 	
 	private char getTerminatorChar(TokenType token)
@@ -155,8 +158,10 @@ public class SimpleParser
     					}
     					else if(tagName.equals("DOCNO"))
     					{
-    						currentDocId = consumeToken(TokenType.WORD, reader);
+    						rawDocId = consumeToken(TokenType.WORD, reader);
     						consumeToken(TokenType.ETAG, reader);
+    						
+    						currentDocId = documentHandler.getDocumentId(rawDocId);
     					}
     					else if(tagName.equals("HEADLINE") || tagName.equals("TEXT"))
     					{
@@ -176,7 +181,7 @@ public class SimpleParser
     					
     					if(tagName.equals("DOCNO"))
     					{
-    						currentDocId = "";
+    						rawDocId = "";
     					}
     					else
     						consumeSomething(reader);
@@ -191,19 +196,19 @@ public class SimpleParser
 	}
 
 	public void parseFile(File file, StopperModule stopper) {
-
-        try (InputStream in = new FileInputStream(file);
-             Reader reader = new InputStreamReader(in, Charset.defaultCharset());
-             // buffer for efficiency
-             Reader bufferedReader = new BufferedReader(reader)) {
-            
-        	consumeSomething(bufferedReader);
-        }
-        catch (Exception e)
-        {
-        	
-        }
-    }
+		
+	    try (InputStream in = new FileInputStream(file);
+	         Reader reader = new InputStreamReader(in, Charset.defaultCharset());
+	         // buffer for efficiency
+	         Reader bufferedReader = new BufferedReader(reader)) {
+	        
+	    	consumeSomething(bufferedReader);
+	    }
+	    catch (Exception e)
+	    {
+	    	
+	    }
+	}
 
 }
 

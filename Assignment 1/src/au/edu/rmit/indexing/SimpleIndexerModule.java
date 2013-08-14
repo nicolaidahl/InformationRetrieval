@@ -12,14 +12,11 @@ public class SimpleIndexerModule implements IndexerModule
 {
     private static final String LEXICON_DELIM = "|";
 
-    File lexicon;
-    File invlist;
-    HashMap<String, PostingsList> index = new HashMap<String, PostingsList>();
+    HashMap<String, PostingsList> index;
 
-    public SimpleIndexerModule(File lexicon, File invlist)
+    public SimpleIndexerModule()
     {
-        this.lexicon = lexicon;
-        this.invlist = invlist;
+        this.index = new HashMap<String, PostingsList>();
     }
 
     public void indexWord(String term, int documentId)
@@ -48,7 +45,7 @@ public class SimpleIndexerModule implements IndexerModule
         //System.out.println(documentId);
     }
 
-    public void writeIndex() throws IOException
+    public void writeIndex(File lexicon, File invlist) throws IOException
     {
         PrintWriter lexiconWriter = new PrintWriter(lexicon);
 

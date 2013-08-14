@@ -195,7 +195,7 @@ public class SimpleParser
         }
     }
 
-    public void parseFile(File file, StopperModule stopper) {
+    public void parseFile(File file) {
 
         try (InputStream in = new FileInputStream(file);
              Reader reader = new InputStreamReader(in, Charset.defaultCharset());

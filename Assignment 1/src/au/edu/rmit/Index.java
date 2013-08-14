@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
-import au.edu.rmit.indexing.IndexerModule;
 import au.edu.rmit.indexing.SimpleIndexerModule;
 import au.edu.rmit.parsing.SimpleParser;
 import au.edu.rmit.stopping.SimpleStopperModule;
@@ -17,16 +16,17 @@ public class Index {
      */
     public static void main(String[] args) {
 
-        File file = new File("test_data/latimes_small");
-
+        File inputFileSmall = new File("test_data/latimes_small");
+        File stopList = new File("test_data/stoplist");
+        
         File lexicon = new File("lexicon");
         File invlist = new File("invlist");
 
-        StopperModule stopper = new SimpleStopperModule(new File(""));
+        StopperModule stopper = new SimpleStopperModule(stopList);
         SimpleIndexerModule indexer = new SimpleIndexerModule(lexicon, invlist);
 
         SimpleParser p = new SimpleParser(stopper, indexer);
-        p.parseFile(file, stopper);
+        p.parseFile(inputFileSmall);
 
         // Test SimpleIndexerModule.addDocument()
         HashMap<String, Integer> testTerms = new HashMap<String, Integer>();

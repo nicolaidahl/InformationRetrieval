@@ -54,9 +54,11 @@ public class SimpleIndexerModule implements IndexerModule
         BufferedOutputStream invlistBOS = new BufferedOutputStream(invlistFOS);
         DataOutputStream invlistDOS = new DataOutputStream(invlistBOS);
 
+        long bytePos;
+        
         for (String term : index.keySet())
         {
-            long bytePos = invlistDOS.size();
+            bytePos = invlistDOS.size();
             lexiconWriter.println(term + LEXICON_DELIM
                     + index.get(term).getFrequency() + LEXICON_DELIM
                     + bytePos);

@@ -3,9 +3,12 @@ package au.edu.rmit.indexing;
 import java.util.ArrayList;
 
 public class PostingsList {
-    private ArrayList<Posting> postingsList = new ArrayList<Posting>();
+    private ArrayList<Posting> postingsList;
 
-    public PostingsList() { }
+    public PostingsList()
+    {
+        postingsList = new ArrayList<Posting>();
+    }
 
     public void addPosting(int documentId, int inDocumentFreq)
     {

@@ -1,8 +1,15 @@
 package au.edu.rmit.parsing;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class DocIdHandler {
@@ -13,10 +20,35 @@ public class DocIdHandler {
         docIdMap = new ArrayList<String>();
     }
 
+    // If instantiated with a file name load index in straight away
+    public DocIdHandler(File mapFile)
+            throws FileNotFoundException, IOException
+    {
+        this();
+        this.readMap(mapFile);
+    }
+
     public int getDocumentId(String rawDocumentId)
     {
         docIdMap.add(rawDocumentId);
         return (docIdMap.size() - 1);
+    }
+
+    public String getRawDocumentId(int documentId)
+            throws InvalidDocumentIdException
+    {
+        String rawDocId;
+        try
+        {
+            rawDocId = docIdMap.get(documentId);
+        }
+        catch(IndexOutOfBoundsException e)
+        {
+            throw new InvalidDocumentIdException(
+                    "Document Id" + documentId + " does not exist");
+        }
+
+        return rawDocId;
     }
 
     public void writeMap(File mapFile) throws FileNotFoundException
@@ -30,4 +62,30 @@ public class DocIdHandler {
 
         mapWriter.close();
     }
+
+    public void readMap(File mapFile)
+            throws FileNotFoundException, IOException 
+    {
+        InputStream in = new FileInputStream(mapFile);
+        Reader reader = new InputStreamReader(in, Charset.defaultCharset());
+        BufferedReader mapReader = new BufferedReader(reader);
+
+        String rawDocId;
+        // Map file writes out docIds sequentially, so line 1 = 0, line 2 = 1 etc.
+        int currentDocId = 0;
+
+        while ((rawDocId = mapReader.readLine()) != null)
+        {
+            rawDocId = rawDocId.trim();
+
+            // Make sure it wasn't a blank index
+            if (!rawDocId.isEmpty())
+                docIdMap.set(currentDocId, rawDocId);
+
+            currentDocId++;
+        }
+
+        mapReader.close();
+    }
+
 }

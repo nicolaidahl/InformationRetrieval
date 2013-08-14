@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import au.edu.rmit.indexing.IndexerModule;
 import au.edu.rmit.misc.TokenType;
@@ -24,6 +25,7 @@ public class SimpleParser
     StopperModule stopperModule;
     IndexerModule indexerModule;
     DocIdHandler documentHandler;
+    HashMap<String, Integer> docTermList;
 
 
     boolean inDocument = false;
@@ -31,12 +33,12 @@ public class SimpleParser
     int currentDocId;
 
 
-    public SimpleParser(StopperModule stopperModule, IndexerModule indexerModule)
+    public SimpleParser(StopperModule stopperModule, IndexerModule indexerModule, DocIdHandler documentHandler)
     {
         tokenList = new ArrayList<String>();
         this.stopperModule = stopperModule;
         this.indexerModule = indexerModule;
-        documentHandler = new DocIdHandler();
+        this.documentHandler = documentHandler;
     }
 
     private char getTerminatorChar(TokenType token)
@@ -108,7 +110,15 @@ public class SimpleParser
                 String lowerCaseWord = aWord.toLowerCase();
                 if(!stopperModule.isStopWord(lowerCaseWord))
                 {
-                    indexerModule.indexWord(lowerCaseWord, currentDocId);
+                    //indexerModule.indexWord(lowerCaseWord, currentDocId);
+                	if (docTermList.containsKey(lowerCaseWord))
+                	{
+	                	docTermList.put(lowerCaseWord, new Integer(docTermList.get(lowerCaseWord).intValue() + 1));
+                	}
+                	else
+                	{
+	                	docTermList.put(lowerCaseWord, new Integer(1));
+                	}
                 }
             }
         }
@@ -161,7 +171,9 @@ public class SimpleParser
                             rawDocId = consumeToken(TokenType.WORD, reader);
                             consumeToken(TokenType.ETAG, reader);
 
-                            currentDocId = documentHandler.getDocumentId(rawDocId);
+                            // Get new docId and initialise term list
+                            currentDocId = documentHandler.getDocumentId(rawDocId.trim());
+                            docTermList = new HashMap<String, Integer>();
                         }
                         else if(tagName.equals("HEADLINE") || tagName.equals("TEXT"))
                         {
@@ -177,14 +189,18 @@ public class SimpleParser
                         String tagName = consumeToken(TokenType.ETAG, reader);
 
                         if(tagName.equals("DOC"))
+                        {
                             inDocument = false;
+                        	// Add current document to term list
+                        	indexerModule.addDocument(currentDocId, docTermList);
+                        }
 
                         if(tagName.equals("DOCNO"))
                         {
                             rawDocId = "";
                         }
-                        else
-                            consumeSomething(reader);
+                        //else
+                            //consumeSomething(reader);
 
 
                     }
@@ -195,7 +211,7 @@ public class SimpleParser
         }
     }
 
-    public void parseFile(File file, StopperModule stopper) {
+    public void parseFile(File file) {
 
         try (InputStream in = new FileInputStream(file);
              Reader reader = new InputStreamReader(in, Charset.defaultCharset());
@@ -204,7 +220,7 @@ public class SimpleParser
 
             consumeSomething(bufferedReader);
         }
-        catch (Exception e)
+        catch (IOException e)
         {
 
         }

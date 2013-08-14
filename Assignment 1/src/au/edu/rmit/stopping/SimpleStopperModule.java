@@ -1,6 +1,10 @@
 package au.edu.rmit.stopping;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashSet;
 
 public class SimpleStopperModule implements StopperModule 
@@ -9,8 +13,32 @@ public class SimpleStopperModule implements StopperModule
 
     public SimpleStopperModule(File file)
     {
-        stoppedWords = new HashSet<String>();
-        stoppedWords.add("and");
+        stoppedWords = readStopWordsFromFile(file);        
+    }
+
+    private HashSet<String> readStopWordsFromFile(File file)
+    {
+        HashSet<String> words = new HashSet<String>();
+
+        BufferedReader br;
+        try
+        {
+            br = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = br.readLine()) != null) {
+               words.add(line);
+            }
+            br.close();
+        } catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+
+        return words;
     }
 
 

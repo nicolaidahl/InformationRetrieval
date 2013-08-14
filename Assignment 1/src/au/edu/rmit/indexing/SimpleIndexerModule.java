@@ -1,5 +1,6 @@
 package au.edu.rmit.indexing;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -28,7 +29,7 @@ public class SimpleIndexerModule implements IndexerModule
 
         index.get(term).updatePosting(documentId);
 
-        System.out.println(documentId + ": " + term);
+        //System.out.println(documentId + ": " + term);
     }
 
     public void addDocument(int documentId, HashMap<String, Integer> termList)
@@ -44,6 +45,7 @@ public class SimpleIndexerModule implements IndexerModule
             index.get(term).addPosting(documentId, frequency);
 
         }
+        //System.out.println(documentId);
     }
 
     public void writeIndex() throws IOException
@@ -52,7 +54,8 @@ public class SimpleIndexerModule implements IndexerModule
 
         // Use data output stream for invlist so we can write integers.
         FileOutputStream invlistFOS = new FileOutputStream(invlist);
-        DataOutputStream invlistDOS = new DataOutputStream(invlistFOS);
+        BufferedOutputStream invlistBOS = new BufferedOutputStream(invlistFOS);
+        DataOutputStream invlistDOS = new DataOutputStream(invlistBOS);
 
         for (String term : index.keySet())
         {

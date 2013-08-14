@@ -15,30 +15,30 @@ public class SimpleStopperModule implements StopperModule
     {
         stoppedWords = readStopWordsFromFile(file);        
     }
-
+    
     private HashSet<String> readStopWordsFromFile(File file)
     {
-        HashSet<String> words = new HashSet<String>();
-
-        BufferedReader br;
-        try
-        {
-            br = new BufferedReader(new FileReader(file));
-            String line;
-            while ((line = br.readLine()) != null) {
-               words.add(line);
-            }
-            br.close();
-        } catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-
-        return words;
+    	HashSet<String> words = new HashSet<String>();
+    	
+    	BufferedReader br;
+		try
+		{
+			br = new BufferedReader(new FileReader(file));
+			String line;
+	    	while ((line = br.readLine()) != null) {
+	    	   words.add(line);
+	    	}
+	    	br.close();
+		} catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+    	
+    	
+    	return words;
     }
 
 

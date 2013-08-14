@@ -19,9 +19,8 @@ public class Index {
     public static void main(String[] args) {
 
         File inputFileSmall = new File("test_data/latimes_small");
-        File inputFileLarge = new File("test_data/latimes");
         File stopList = new File("test_data/stoplist");
-
+        
         File lexicon = new File("lexicon");
         File invlist = new File("invlist");
 
@@ -32,7 +31,7 @@ public class Index {
         DocIdHandler documentHandler = new DocIdHandler();
 
         SimpleParser p = new SimpleParser(stopper, indexer, documentHandler);
-        p.parseFile(inputFileLarge);
+        p.parseFile(inputFileSmall);
 
         // Test SimpleIndexerModule.addDocument()
         /*HashMap<String, Integer> testTerms = new HashMap<String, Integer>();

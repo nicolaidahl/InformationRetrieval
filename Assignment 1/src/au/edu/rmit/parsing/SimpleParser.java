@@ -10,11 +10,12 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import au.edu.rmit.indexing.IndexerModule;
 import au.edu.rmit.misc.TokenType;
 import au.edu.rmit.stopping.StopperModule;
-
+import static java.util.Arrays.asList;
 
 
 
@@ -41,20 +42,35 @@ public class SimpleParser
         this.documentHandler = documentHandler;
     }
 
-    private char getTerminatorChar(TokenType token)
+    private HashSet<Character> getTerminatorChar(TokenType token)
     {
         switch (token)
         {
-        case STAG:
-            return '>';
-        case ETAG:
-            return '>';
-        case WORD:
-            return '<';
-        case CONTENT:
-            return ' ';
-        default:
-            return ' ';
+        case STAG: {
+        	HashSet<Character> ret = new HashSet<Character>();
+        	ret.add('>');
+            return ret;
+        }
+        case ETAG: {
+        	HashSet<Character> ret = new HashSet<Character>();
+        	ret.add('>');
+            return ret;
+        }
+        case WORD: {
+        	HashSet<Character> ret = new HashSet<Character>();
+        	ret.add('<');
+            return ret;
+        }
+        case CONTENT: {
+        	HashSet<Character> ret = new HashSet<Character>();
+        	ret.addAll(asList(' ', '.', ',', ';', ':', '\'', '\"', '(', ')', '[', ']'));
+            return ret;
+        }
+        default: {
+        	HashSet<Character> ret = new HashSet<Character>();
+        	ret.add(' ');
+            return ret;
+        }
         }
     }
 
@@ -64,13 +80,13 @@ public class SimpleParser
     {
         StringBuilder sb = new StringBuilder();
 
-        char c = getTerminatorChar(tt);
+        HashSet<Character> chars = getTerminatorChar(tt);
 
         int r;
         while ((r = reader.read()) != -1) {
             char ch = (char) r;
 
-            if(c == ch)
+            if(chars.contains(ch))
                 break;
 
             sb.append(ch);
@@ -104,7 +120,7 @@ public class SimpleParser
                     }
                 }
             }
-            else if(ch != '\n')
+            else if(Character.isLetter(ch))
             {
                 String aWord = ch + consumeToken(TokenType.CONTENT, reader);
                 String lowerCaseWord = aWord.toLowerCase();
@@ -222,7 +238,7 @@ public class SimpleParser
         }
         catch (IOException e)
         {
-
+        	e.printStackTrace();
         }
     }
 

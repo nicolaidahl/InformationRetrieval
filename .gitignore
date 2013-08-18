@@ -31,3 +31,9 @@
 *.war
 *.ear
 .DS_STORE
+
+# Custom files #
+Assignment\ 1/invlist
+Assignment\ 1/lexicon
+Assignment\ 1/map
+

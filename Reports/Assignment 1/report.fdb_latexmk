@@ -1,10 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1376823879 "report.tex" "report.pdf" "report" 1376823879
-  "./sections/appendix.tex" 1376470007 113 fed85a1eb856c9c1f40abaecb8cba979 ""
-  "./sections/indexing.tex" 1376823710 204 14addefc71f7aee8a991f247cf692e42 ""
-  "./sections/parsing.tex" 1376823741 202 d90b0fd8721124220a61fd625e36919e ""
-  "./sections/querying.tex" 1376470043 67 bcf3ccb1851ccca6bd73065ea29a382b ""
-  "./sections/stopping.tex" 1376823824 157 87b2956b48d9eaf3dac5f0d0dad99078 ""
+["pdflatex"] 1376825075 "report.tex" "report.pdf" "report" 1376825076
+  "./sections/contributions.tex" 1376470007 113 fed85a1eb856c9c1f40abaecb8cba979 ""
+  "./sections/indexing.tex" 1376825032 737 12a365ce6fcbfaddf7536ca65576a9d4 ""
+  "./sections/querying.tex" 1376825036 577 315743b9a9e5da9e2dbdf1b26a536920 ""
+  "./sections/stopping.tex" 1376824912 343 d3b2f4b379701b96623e8025ffa43936 ""
   "/usr/local/texlive/2012/texmf-dist/tex/context/base/supp-pdf.mkii" 1337017135 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2012/texmf-dist/tex/generic/oberdiek/atbegshi.sty" 1335995445 24460 92f559a71aac869021852c227c704b38 ""
   "/usr/local/texlive/2012/texmf-dist/tex/generic/oberdiek/etexcmds.sty" 1335995445 7612 c47308d923ec19888707b0f1792b326a ""
@@ -70,6 +69,7 @@
   "/usr/local/texlive/2012/texmf-dist/tex/latex/base/ifthen.sty" 1254151887 5022 2ec7815b07dc68e65542e23a180bc839 ""
   "/usr/local/texlive/2012/texmf-dist/tex/latex/base/inputenc.sty" 1254151887 4388 1cb2ca8d423695bd22ea8d126c276f33 ""
   "/usr/local/texlive/2012/texmf-dist/tex/latex/base/makeidx.sty" 1254151887 1803 73774dc5d3e5e39067964331f0b99649 ""
+  "/usr/local/texlive/2012/texmf-dist/tex/latex/base/omscmr.fd" 1254151887 2109 c400bd6c901edc4a09e4d53fcffd3b3c ""
   "/usr/local/texlive/2012/texmf-dist/tex/latex/base/omsenc.dfu" 1254151887 1868 39c80c053f689193a1ca9a83d05b2744 ""
   "/usr/local/texlive/2012/texmf-dist/tex/latex/base/ot1enc.dfu" 1254151887 2620 9a36ef7e0369aa29d9d298a6bf19588e ""
   "/usr/local/texlive/2012/texmf-dist/tex/latex/base/size10.clo" 1254151887 9042 248dfba326a1b8733d6bb8e0a3ac1e49 ""
@@ -112,8 +112,8 @@
   "/usr/local/texlive/2012/texmf-dist/tex/latex/xcolor/xcolor.sty" 1169481954 55224 a43bab84e0ac5e6efcaf9a98bde73a94 ""
   "/usr/local/texlive/2012/texmf-dist/tex/latex/xkeyval/xkeyval.sty" 1218672668 4934 8ea45c150f1216b4eb8e3b63954e4bbf ""
   "llncs.cls" 1355228226 42776 44493c38e57a29ba7e15792efea18b8f ""
-  "report.aux" 1376823879 885 14399896e556cce447e0f02ee9f89f35 ""
-  "report.tex" 1376823878 1038 8180b04e786eb4a9bbcc0eafa0c00aa8 ""
+  "report.aux" 1376825076 785 a14ea66ff020c8d21a3285bd05ef4a1f ""
+  "report.tex" 1376825018 1014 ab6e75c507378fd90cd34600564e56a8 ""
   (generated)
   "report.aux"
   "report.pdf"

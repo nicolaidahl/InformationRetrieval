@@ -71,21 +71,15 @@ public class DocIdHandler {
         BufferedReader mapReader = new BufferedReader(reader);
 
         String rawDocId;
-        // Map file writes out docIds sequentially, so line 1 = 0, line 2 = 1 etc.
-        int currentDocId = 0;
 
+        // Map file writes out docIds sequentially, so line 1 = 0, line 2 = 1 etc.
         while ((rawDocId = mapReader.readLine()) != null)
         {
-            rawDocId = rawDocId.trim();
-
             // Make sure it wasn't a blank index
             if (!rawDocId.isEmpty())
-                docIdMap.set(currentDocId, rawDocId);
-
-            currentDocId++;
+                docIdMap.add(rawDocId);
         }
 
         mapReader.close();
     }
-
 }

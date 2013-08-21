@@ -2,6 +2,7 @@ package au.edu.rmit.querying;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,11 +11,12 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import au.edu.rmit.indexing.Posting;
 import au.edu.rmit.indexing.PostingsList;
 
 public class SimpleQueryEngine implements QueryEngine
 {
-    private static final String LEXICON_DELIM = "|";
+    private static final String LEXICON_DELIM = "\\|";
 
     File lexiconFile;
     File invlistFile;
@@ -22,7 +24,7 @@ public class SimpleQueryEngine implements QueryEngine
     HashMap<String, LexiconTerm> lexiconList;
     String[] mapArray;
     
-    public SimpleQueryEngine(File lexicon, File invlist, File map) throws IOException
+    public SimpleQueryEngine(File lexicon, File invlist, File map)
     {
         this.lexiconFile = lexicon;
         this.invlistFile = invlist;
@@ -33,67 +35,106 @@ public class SimpleQueryEngine implements QueryEngine
         mapArray = readMap();
     }
     
-    public PostingsList getPostings(String term) throws IOException
+    public SearchResult getSearchResult(String term)
     {
         if (!lexiconList.containsKey(term))
-            return null;
+            return new SearchResult(term, new ArrayList<Posting>(), 0);
 
         int documentFreq = lexiconList.get(term).documentFreq;
         int filePosition = (int) lexiconList.get(term).filePosition;
         PostingsList termPosting = new PostingsList();
         
-        SeekableByteChannel sbc = Files.newByteChannel(invlistFile.toPath());
-        ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE / 8 * 2 * documentFreq);
-        buf.position(filePosition);
+        SeekableByteChannel sbc;
+		try
+		{
+			sbc = Files.newByteChannel(invlistFile.toPath());
+			
+			ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE / 8 * 2 * documentFreq);
+	        buf.position(filePosition);
 
-        sbc.read(buf);
+	        sbc.read(buf);
+	        
+	        buf.rewind();
+	        
+	        while (buf.remaining() >= 4)
+	        {
+	            termPosting.addPosting(buf.getInt(), buf.getInt());
+	        }
+	        sbc.close();
+		} catch (IOException e)
+		{
+			System.err.println("Unable to retrieve search results for term " + term);
+			e.printStackTrace();
+		}
         
-        buf.rewind();
-        
-        while (buf.remaining() >= 4)
-        {
-            termPosting.addPosting(buf.getInt(), buf.getInt());
-        }
-        sbc.close();
 
-        return termPosting;
+        return new SearchResult(term, termPosting.getPostingsAsArrayList(), documentFreq);
     }
     
-    private void readIndex() throws IOException
+    private void readIndex() 
     {
+    	
         BufferedReader br;
-        br = new BufferedReader(new FileReader(lexiconFile));
+        try
+		{
+        	
+			br = new BufferedReader(new FileReader(lexiconFile));
+			
+			String line;
+	        String[] tokens;
 
-        String line;
-        String[] tokens;
+	    	while ((line = br.readLine()) != null) {
+	    	    tokens = line.split(LEXICON_DELIM);
+	    	    
+	    	    lexiconList.put(tokens[0],
+	    	            new LexiconTerm(Integer.parseInt(tokens[1]),
+	    	                            Long.parseLong(tokens[2])));
+	    	}
 
-    	while ((line = br.readLine()) != null) {
-    	    tokens = line.split(LEXICON_DELIM);
-    	    
-    	    lexiconList.put(tokens[0],
-    	            new LexiconTerm(Integer.parseInt(tokens[1]),
-    	                            Long.parseLong(tokens[2])));
-    	}
+	        br.close();
+		} catch (Exception e)
+		{
+			System.err.println("Unable to load lexicon file");
+			e.printStackTrace();
+			System.exit(-1);
+		} 
 
-        br.close();
+        
     }
     
-    private String[] readMap() throws IOException
+    private String[] readMap()
     {
         ArrayList<String> mapArrayList = new ArrayList<String>();
 
         BufferedReader br;
-        br = new BufferedReader(new FileReader(mapFile));
+        try
+		{
+			br = new BufferedReader(new FileReader(mapFile));
+			
+			String line;
 
-        String line;
+	    	while ((line = br.readLine()) != null) {
+	    	    mapArrayList.add(line);
+	    	}
 
-    	while ((line = br.readLine()) != null) {
-    	    mapArrayList.add(line);
-    	}
+	        br.close(); 
+	        
+	        
+		} catch (FileNotFoundException e)
+		{
+			System.err.println("Unable to load map file");
+			e.printStackTrace();
+			System.exit(-1);
+		} catch (IOException e)
+		{
+			System.err.println("Unable to load map file");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 
-        br.close();        
-
+               
         return mapArrayList.toArray(new String[0]);
+        
     }
     
     private static class LexiconTerm

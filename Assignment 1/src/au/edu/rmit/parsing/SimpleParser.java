@@ -1,6 +1,7 @@
 package au.edu.rmit.parsing;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,8 +22,6 @@ import static java.util.Arrays.asList;
 
 public class SimpleParser 
 {
-
-    ArrayList<String> tokenList;
     StopperModule stopperModule;
     IndexerModule indexerModule;
     DocIdHandler documentHandler;
@@ -39,7 +38,6 @@ public class SimpleParser
     					DocIdHandler documentHandler, 
     					boolean shouldPrintTerms)
     {
-        tokenList = new ArrayList<String>();
         this.stopperModule = stopperModule;
         this.indexerModule = indexerModule;
         this.documentHandler = documentHandler;
@@ -78,7 +76,7 @@ public class SimpleParser
         }
     }
 
-
+    
 
     private String consumeToken(TokenType tt, Reader reader) throws IOException
     {
@@ -98,8 +96,11 @@ public class SimpleParser
 
         return sb.toString();
     }
+    
+    
 
-    private void consumeContentUntil(Reader reader, String terminatorTagName) throws IOException
+    private void consumeContentUntil(Reader reader, String terminatorTagName, TermHandler termHandler) 
+    		throws IOException
     {
         int r;
         while ((r = reader.read()) != -1)
@@ -119,7 +120,7 @@ public class SimpleParser
                     else
                     {
                         String tagName = consumeToken(TokenType.ETAG, reader);
-                        if(tagName.equals(terminatorTagName))
+                        if(terminatorTagName != null && tagName.equals(terminatorTagName))
                             break;
                     }
                 }
@@ -127,21 +128,13 @@ public class SimpleParser
             else if(Character.isLetter(ch))
             {
                 String aWord = ch + consumeToken(TokenType.CONTENT, reader);
-                String lowerCaseWord = aWord.toLowerCase();
-                if(!stopperModule.isStopWord(lowerCaseWord))
+                String lowerCaseTerm = aWord.toLowerCase();
+                if(!stopperModule.isStopWord(lowerCaseTerm))
                 {
                 	if(shouldPrintTerms)
-                		System.out.println(lowerCaseWord);
+                		System.out.println(lowerCaseTerm);
                 	
-                    //indexerModule.indexWord(lowerCaseWord, currentDocId);
-                	if (docTermList.containsKey(lowerCaseWord))
-                	{
-	                	docTermList.put(lowerCaseWord, new Integer(docTermList.get(lowerCaseWord).intValue() + 1));
-                	}
-                	else
-                	{
-	                	docTermList.put(lowerCaseWord, new Integer(1));
-                	}
+                	termHandler.handleTerm(lowerCaseTerm);
                 }
             }
         }
@@ -204,7 +197,22 @@ public class SimpleParser
                         }
                         else if(tagName.equals("HEADLINE") || tagName.equals("TEXT"))
                         {
-                            consumeContentUntil(reader, tagName);
+                            consumeContentUntil(reader, tagName, new TermHandler()
+							{
+								@Override
+								public void handleTerm(String term)
+								{
+									if (docTermList.containsKey(term))
+				                	{
+					                	docTermList.put(term, new Integer(docTermList.get(term).intValue() + 1));
+				                	}
+				                	else
+				                	{
+					                	docTermList.put(term, new Integer(1));
+				                	}
+									
+								}
+							});
                         }
                         else
                         {
@@ -252,10 +260,42 @@ public class SimpleParser
         	e.printStackTrace();
         }
     }
+    
+    public ArrayList<String> parseQueryString(String queryString)
+    {
+    	final ArrayList<String> outputTerms = new ArrayList<String>();
+    	
+    	try
+		{
+    		InputStream is = new ByteArrayInputStream(queryString.getBytes(Charset.defaultCharset()));
+        	Reader reader = new InputStreamReader(is, Charset.defaultCharset());
+            // buffer for efficiency
+            Reader bufferedReader = new BufferedReader(reader);
+        	
+			consumeContentUntil(bufferedReader, null, new TermHandler()
+			{
+				@Override
+				public void handleTerm(String term)
+				{
+					outputTerms.add(term);
+					
+				}
+			});
+		} catch (IOException e)
+		{
+			System.err.println("Unable to parse query string");
+			e.printStackTrace();
+		}
+    	
+    	return outputTerms;
+    }
 
 }
 
-
+interface TermHandler
+{
+	public void handleTerm(String term);
+}
 
 /*class DocNoMapping 
 {

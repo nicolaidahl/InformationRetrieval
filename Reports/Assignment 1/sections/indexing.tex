@@ -3,9 +3,12 @@
 \section{Indexing}
 \label{sec:indexing}
 
+Nicolai notes on parsing
 % Character.isLetter() is damn fast
 % http://stackoverflow.com/questions/93976/how-to-determine-whether-a-character-is-a-letter-in-java
-- Talk about hyphens and how we handle them
+- Talk about hyphens and how we handle them. The book says that it's all about finding a heuristic for how to handle them
+Handling of hyphens have been inspired by: https://www.ibm.com/developerworks/community/blogs/nlp/entry/tokenization?lang=en
+
 - We automatically exclude terms smaller than three chars
 - Don't allow numbers
 - Allow terms that start with letters and have numbers in them

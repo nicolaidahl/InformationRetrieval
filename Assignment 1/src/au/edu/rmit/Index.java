@@ -48,9 +48,9 @@ public class Index {
     	File inputFile = new File(dataFilePath);
     	if(!inputFile.exists())
     	{
-    		System.out.println("Please specify a valid source file path. " + 
+    		System.err.println("Please specify a valid source file path. " + 
     							(dataFilePath.equals("") ? "<empty>" : dataFilePath) + " is invalid.");
-    		System.out.println(inputFormatHelp);
+    		System.err.println(inputFormatHelp);
     		System.exit(-1);
     	}
     	
@@ -61,8 +61,8 @@ public class Index {
         	
         	if(!stopList.exists())
         	{
-        		System.out.println("Please specify a valid stoplist path. " + stopFilePath + " is invalid.");
-        		System.out.println(inputFormatHelp);
+        		System.err.println("Please specify a valid stoplist path. " + stopFilePath + " is invalid.");
+        		System.err.println(inputFormatHelp);
         		System.exit(-1);
         	}
     	}

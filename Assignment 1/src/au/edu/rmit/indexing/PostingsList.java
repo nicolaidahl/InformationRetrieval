@@ -60,5 +60,10 @@ public class PostingsList {
     {
         return postingsList.toArray(new Posting[0]);
     }
+    
+    public ArrayList<Posting> getPostingsAsArrayList()
+    {
+    	return postingsList;
+    }
 
 }

@@ -24,19 +24,22 @@ public class Query {
     	}
     	
     	
-    	File invlistFile = new File(args[0]);
-    	validateFile(invlistFile, "inverted list");
-    	File lexiconFile = new File(args[1]);
+    	File lexiconFile = new File(args[0]);
     	validateFile(lexiconFile, "lexicon");
+    	File invlistFile = new File(args[1]);
+    	validateFile(invlistFile, "inverted list");
     	File mapFile = new File(args[2]);
     	validateFile(mapFile, "map");
 
     	StringBuilder searchTerms = new StringBuilder();
+    	String delimiter = "";
     	for(int i = 3; i < args.length; i++)
     	{
+    	    searchTerms.append(delimiter);
     		searchTerms.append(args[i]);
+    		delimiter = " ";
     	}
-    	
+
     	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile, mapFile);
     	SimpleParser parser = new SimpleParser(new DummyStopperModule(), null, null, false);
     	

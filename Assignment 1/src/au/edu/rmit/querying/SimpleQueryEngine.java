@@ -50,23 +50,23 @@ public class SimpleQueryEngine implements QueryEngine
 			sbc = Files.newByteChannel(invlistFile.toPath());
 			
 			ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE / 8 * 2 * documentFreq);
-	        buf.position(filePosition);
 
+	        sbc.position(filePosition);
 	        sbc.read(buf);
 	        
 	        buf.rewind();
-	        
 	        while (buf.remaining() >= 4)
 	        {
 	            termPosting.addPosting(buf.getInt(), buf.getInt());
 	        }
 	        sbc.close();
-		} catch (IOException e)
+		}
+		catch (IOException e)
 		{
 			System.err.println("Unable to retrieve search results for term " + term);
 			e.printStackTrace();
 		}
-        
+
 
         return new SearchResult(term, termPosting.getPostingsAsArrayList(), documentFreq);
     }
@@ -85,7 +85,7 @@ public class SimpleQueryEngine implements QueryEngine
 
 	    	while ((line = br.readLine()) != null) {
 	    	    tokens = line.split(LEXICON_DELIM);
-	    	    
+
 	    	    lexiconList.put(tokens[0],
 	    	            new LexiconTerm(Integer.parseInt(tokens[1]),
 	    	                            Long.parseLong(tokens[2])));

@@ -34,6 +34,7 @@ public class SimpleStopperModule implements StopperModule
 			e.printStackTrace();
 		} catch (IOException e)
 		{
+			System.err.println("Invalid stoplist format");
 			e.printStackTrace();
 		}
     	

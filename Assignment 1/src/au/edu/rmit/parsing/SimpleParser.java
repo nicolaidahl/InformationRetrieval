@@ -27,19 +27,23 @@ public class SimpleParser
     IndexerModule indexerModule;
     DocIdHandler documentHandler;
     HashMap<String, Integer> docTermList;
-
+    boolean shouldPrintTerms;
 
     boolean inDocument = false;
     String rawDocId = "";
     int currentDocId;
 
 
-    public SimpleParser(StopperModule stopperModule, IndexerModule indexerModule, DocIdHandler documentHandler)
+    public SimpleParser(StopperModule stopperModule, 
+    					IndexerModule indexerModule, 
+    					DocIdHandler documentHandler, 
+    					boolean shouldPrintTerms)
     {
         tokenList = new ArrayList<String>();
         this.stopperModule = stopperModule;
         this.indexerModule = indexerModule;
         this.documentHandler = documentHandler;
+        this.shouldPrintTerms = shouldPrintTerms;
     }
 
     private HashSet<Character> getTerminatorChar(TokenType token)
@@ -63,7 +67,7 @@ public class SimpleParser
         }
         case CONTENT: {
         	HashSet<Character> ret = new HashSet<Character>();
-        	ret.addAll(asList(' ', '.', ',', ';', ':', '\'', '\"', '(', ')', '[', ']'));
+        	ret.addAll(asList(' ', '.', ',', ';', ':', '\'', '\"', '(', ')', '[', ']', '?', '-', '/', '\\', '!'));
             return ret;
         }
         default: {
@@ -126,6 +130,9 @@ public class SimpleParser
                 String lowerCaseWord = aWord.toLowerCase();
                 if(!stopperModule.isStopWord(lowerCaseWord))
                 {
+                	if(shouldPrintTerms)
+                		System.out.println(lowerCaseWord);
+                	
                     //indexerModule.indexWord(lowerCaseWord, currentDocId);
                 	if (docTermList.containsKey(lowerCaseWord))
                 	{
@@ -187,9 +194,13 @@ public class SimpleParser
                             rawDocId = consumeToken(TokenType.WORD, reader);
                             consumeToken(TokenType.ETAG, reader);
 
+                            
+                            
                             // Get new docId and initialise term list
                             currentDocId = documentHandler.getDocumentId(rawDocId.trim());
                             docTermList = new HashMap<String, Integer>();
+                            
+                            
                         }
                         else if(tagName.equals("HEADLINE") || tagName.equals("TEXT"))
                         {

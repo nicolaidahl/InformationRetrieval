@@ -2,6 +2,7 @@ package au.edu.rmit;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 
 import au.edu.rmit.indexing.IndexerModule;
 import au.edu.rmit.indexing.SimpleIndexerModule;
@@ -17,7 +18,7 @@ public class Index {
      */
     public static void main(String[] args) {
 
-        File inputFileSmall = new File("test_data/latimes_small");
+        File inputFileSmall = new File("test_data/latimes");
         File stopList = new File("test_data/stoplist");
         
         StopperModule stopper = new SimpleStopperModule(stopList);
@@ -31,7 +32,7 @@ public class Index {
         File invlist = new File("invlist");
 
         File mapFile = new File("map");
-
+        
         // Write index and map to disk
         try {
             indexer.writeIndex(lexicon, invlist);

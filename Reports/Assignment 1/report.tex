@@ -2,6 +2,7 @@
 \pagestyle{headings} %page numbers
 \usepackage{makeidx}  % allows for indexgeneration
 \usepackage[utf8]{inputenc}
+\usepackage[numbers]{natbib}
 \usepackage{pdfpages}
 \usepackage{float}
 \usepackage{enumitem}
@@ -24,16 +25,11 @@
 
 \maketitle
 
-\begin{abstract}
-Abstract
-
-\keywords{B+ tree, Coq, Gallina, Formal verification}
-\end{abstract}
-
 \input{sections/indexing.tex}
 \input{sections/stopping.tex}
 \input{sections/querying.tex}
 \newpage
 \input{sections/contributions.tex}
+\bibliography{report}
 
 \end{document}

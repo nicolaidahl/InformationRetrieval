@@ -5,7 +5,7 @@
 When parsing the data set of houndreds of documents we search for the HEADLINE and TEXT tags, which contain content for each document. During this process the Document ID is noted when encountering the DOCID tag, and all other tags are skipped. Parsing content character by charater is performed in accordance with the following set of rules:
 
 \begin{enumerate}
-	\item When reaching mark-up tags such as $<p>$, skip them
+	\item When reaching mark-up tags such as <p>, skip them
 	\item When parsing a token starting with a letter, only allow letters, numbers, and hyphens as non-terminators of the token. When reaching a terminator for a token containing a hyphen, the word is analyzed and handled in the following way:
 	\begin{enumerate}
 		\item If there is only one hyphen in the word and the first part is co, pre, meta, or multi, the hyphen is removed and the two parts are concatenated into one\,\cite{ibm13}.

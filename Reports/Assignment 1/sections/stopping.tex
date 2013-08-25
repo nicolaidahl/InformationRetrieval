@@ -3,7 +3,6 @@
 \section{Stopping}
 \label{sec:stopping}
 
-- Talk about the delegation design pattern we've used?
-- Talk about the hashing function
+The stopping as well as the indexing module have been implemented using the delegation design pattern. The stopper module's sole responsibility is to check if a word passed to it is in the stoplist that was provided\,\cite{princeton}.
 
-Briefly explain how you implemented your stoplist module, including the hash function that you used, and why it is appropriate. This explanation should be around half a page in length.
+To perform constant-time lookups in the stoplist we used the standard Java HashSet of strings. We utilize the standard Java string hash function for an even distribution of keys between the buckets\,\cite{javamex}.

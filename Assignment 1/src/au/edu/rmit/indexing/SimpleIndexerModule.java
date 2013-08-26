@@ -39,7 +39,7 @@ public class SimpleIndexerModule implements IndexerModule
             if (!(index.containsKey(term)))
                 index.put(term, new PostingsList());
 
-            index.get(term).addPosting(documentId, rawDocumentId, frequency);
+            index.get(term).addPosting(documentId, frequency);
 
         }
         //System.out.println(documentId);

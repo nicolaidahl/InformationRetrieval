@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 import au.edu.rmit.indexing.Posting;
+import au.edu.rmit.parsing.DocIdHandler;
+import au.edu.rmit.parsing.InvalidDocumentIdException;
 import au.edu.rmit.parsing.SimpleParser;
 import au.edu.rmit.querying.QueryEngine;
 import au.edu.rmit.querying.SearchResult;
@@ -40,8 +42,9 @@ public class Query {
     		delimiter = " ";
     	}
 
-    	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile, mapFile);
+    	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile);
     	SimpleParser parser = new SimpleParser(new DummyStopperModule(), null, null, false);
+    	DocIdHandler docIdHandler = new DocIdHandler(mapFile);
     	
     	ArrayList<String> parsedTerms = parser.parseQueryString(searchTerms.toString());
     	
@@ -53,7 +56,11 @@ public class Query {
     		System.out.println(result.getFrequency());
     		for (Posting posting : result.getPostings())
 			{
-				System.out.println(posting.getRawDoucmentId() + " " + posting.getFrequency());
+				try {
+                    System.out.println(docIdHandler.getRawDocumentId(posting.getDocumentId()) + " " + posting.getFrequency());
+                } catch (InvalidDocumentIdException e) {
+                    System.out.println("Invalid document ID " + posting.getDocumentId() + " found in search results!");
+                }
 			}
     	}
     	

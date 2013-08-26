@@ -2,7 +2,6 @@ package au.edu.rmit.querying;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,21 +19,16 @@ public class SimpleQueryEngine implements QueryEngine
 
     File lexiconFile;
     File invlistFile;
-    File mapFile;
     HashMap<String, LexiconTerm> lexiconList;
-    String[] mapArray;
     
-    public SimpleQueryEngine(File lexicon, File invlist, File map)
+    public SimpleQueryEngine(File lexicon, File invlist)
     {
         this.lexiconFile = lexicon;
         this.invlistFile = invlist;
         lexiconList = new HashMap<String, LexiconTerm>();
         readIndex();
-
-        this.mapFile = map;
-        mapArray = readMap();
     }
-    
+
     public SearchResult getSearchResult(String term)
     {
         if (!lexiconList.containsKey(term))
@@ -49,6 +43,11 @@ public class SimpleQueryEngine implements QueryEngine
 		{
 			sbc = Files.newByteChannel(invlistFile.toPath());
 			
+			/* Calculate number of bits to read
+			 *  Get number of bytes per integer using integer size in bits divided by 8
+			 *  Multiply by 2 since each posting is made up of two integers
+			 *  Multiply by term document frequency to get size of full postings list
+			 */
 			ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE / 8 * 2 * documentFreq);
 
 	        sbc.position(filePosition);
@@ -57,9 +56,7 @@ public class SimpleQueryEngine implements QueryEngine
 	        buf.rewind();
 	        while (buf.remaining() >= 4)
 	        {
-	        	int docId = buf.getInt();
-	        	String rawDocId = mapArray[docId];
-	            termPosting.addPosting(docId, rawDocId, buf.getInt());
+	            termPosting.addPosting(buf.getInt(), buf.getInt());
 	        }
 	        sbc.close();
 		}
@@ -73,7 +70,6 @@ public class SimpleQueryEngine implements QueryEngine
 			System.err.println("Something went wrong retrieving the search results for " + term);
 			e.printStackTrace();
 		}
-
 
         return new SearchResult(term, termPosting.getPostingsAsArrayList(), documentFreq);
     }
@@ -108,42 +104,7 @@ public class SimpleQueryEngine implements QueryEngine
 
         
     }
-    
-    private String[] readMap()
-    {
-        ArrayList<String> mapArrayList = new ArrayList<String>();
 
-        BufferedReader br;
-        try
-		{
-			br = new BufferedReader(new FileReader(mapFile));
-			
-			String line;
-
-	    	while ((line = br.readLine()) != null) {
-	    	    mapArrayList.add(line);
-	    	}
-
-	        br.close(); 
-	        
-	        
-		} catch (FileNotFoundException e)
-		{
-			System.err.println("Unable to load map file");
-			e.printStackTrace();
-			System.exit(-1);
-		} catch (IOException e)
-		{
-			System.err.println("Unable to load map file");
-			e.printStackTrace();
-			System.exit(-1);
-		}
-
-               
-        return mapArrayList.toArray(new String[0]);
-        
-    }
-    
     private static class LexiconTerm
     {
         public int documentFreq;

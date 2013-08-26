@@ -22,7 +22,6 @@ public class DocIdHandler {
 
     // If instantiated with a file name load index in straight away
     public DocIdHandler(File mapFile)
-            throws FileNotFoundException, IOException
     {
         this();
         this.readMap(mapFile);
@@ -64,22 +63,25 @@ public class DocIdHandler {
     }
 
     public void readMap(File mapFile)
-            throws FileNotFoundException, IOException 
     {
-        InputStream in = new FileInputStream(mapFile);
-        Reader reader = new InputStreamReader(in, Charset.defaultCharset());
-        BufferedReader mapReader = new BufferedReader(reader);
-
-        String rawDocId;
-
-        // Map file writes out docIds sequentially, so line 1 = 0, line 2 = 1 etc.
-        while ((rawDocId = mapReader.readLine()) != null)
+        try (InputStream in = new FileInputStream(mapFile);
+             Reader reader = new InputStreamReader(in, Charset.defaultCharset());
+             BufferedReader mapReader = new BufferedReader(reader))
         {
-            // Make sure it wasn't a blank index
-            if (!rawDocId.isEmpty())
-                docIdMap.add(rawDocId);
-        }
+            String rawDocId;
 
-        mapReader.close();
+            // Map file writes out docIds sequentially, so line 1 = 0, line 2 = 1 etc.
+            while ((rawDocId = mapReader.readLine()) != null)
+            {
+                // Make sure it wasn't a blank index
+                if (!rawDocId.isEmpty())
+                    docIdMap.add(rawDocId);
+            }          
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error while reading map file " + mapFile);
+            e.printStackTrace();
+        }
     }
 }

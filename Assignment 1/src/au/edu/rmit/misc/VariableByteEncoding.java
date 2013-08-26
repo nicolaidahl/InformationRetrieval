@@ -5,23 +5,6 @@ import java.util.Arrays;
 
 public class VariableByteEncoding {
 
-    public static void main(String[] args) {
-
-        ArrayList<Byte> byteArray = new ArrayList<Byte>();
-        byteArray.addAll(Arrays.asList(VariableByteEncoding.encode(84058)));
-        byteArray.addAll(Arrays.asList(VariableByteEncoding.encode(5)));
-        byteArray.addAll(Arrays.asList(VariableByteEncoding.encode(214577)));
-
-        for (int i = 0; i < byteArray.size(); i++)
-        {
-            System.out.println(Integer.toBinaryString(byteArray.get(i) & 0xFF)); 
-        }
-        
-        for (Integer value : VariableByteEncoding.decode(byteArray.toArray(new Byte[0])))
-            System.out.println(value);
-
-    }
-
     public static Byte[] encode(int value)
     {
         ArrayList<Byte> byteArray = new ArrayList<Byte>();

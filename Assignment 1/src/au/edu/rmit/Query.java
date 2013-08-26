@@ -53,7 +53,7 @@ public class Query {
     		System.out.println(result.getFrequency());
     		for (Posting posting : result.getPostings())
 			{
-				System.out.println(posting.getDocumentId() + " " + posting.getFrequency());
+				System.out.println(posting.getRawDoucmentId() + " " + posting.getFrequency());
 			}
     	}
     	

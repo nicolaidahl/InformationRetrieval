@@ -57,13 +57,20 @@ public class SimpleQueryEngine implements QueryEngine
 	        buf.rewind();
 	        while (buf.remaining() >= 4)
 	        {
-	            termPosting.addPosting(buf.getInt(), buf.getInt());
+	        	int docId = buf.getInt();
+	        	String rawDocId = mapArray[docId];
+	            termPosting.addPosting(docId, rawDocId, buf.getInt());
 	        }
 	        sbc.close();
 		}
 		catch (IOException e)
 		{
 			System.err.println("Unable to retrieve search results for term " + term);
+			e.printStackTrace();
+		}
+		catch (Exception e)
+		{
+			System.err.println("Something went wrong retrieving the search results for " + term);
 			e.printStackTrace();
 		}
 

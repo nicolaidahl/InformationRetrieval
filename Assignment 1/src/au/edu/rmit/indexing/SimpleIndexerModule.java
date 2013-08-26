@@ -29,7 +29,7 @@ public class SimpleIndexerModule implements IndexerModule
         //System.out.println(documentId + ": " + term);
     }
 
-    public void addDocument(int documentId, HashMap<String, Integer> termList)
+    public void addDocument(int documentId, String rawDocumentId, HashMap<String, Integer> termList)
     {
         for (String term : termList.keySet())
         {
@@ -39,7 +39,7 @@ public class SimpleIndexerModule implements IndexerModule
             if (!(index.containsKey(term)))
                 index.put(term, new PostingsList());
 
-            index.get(term).addPosting(documentId, frequency);
+            index.get(term).addPosting(documentId, rawDocumentId, frequency);
 
         }
         //System.out.println(documentId);

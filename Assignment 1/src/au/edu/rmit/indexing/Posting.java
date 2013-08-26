@@ -3,17 +3,22 @@ package au.edu.rmit.indexing;
 public class Posting
 {
     private int documentId;
-    private int frequency;
+    //The raw document id is not guaranteed to be set
+    private String rawDoucmentId;
+    
 
-    public Posting(int documentId)
+	private int frequency;
+
+    public Posting(int documentId, String rawDocumentId)
     {
-        this(documentId, 1);
+        this(documentId, rawDocumentId, 1);
     }
 
-    public Posting(int documentId, int frequency)
+    public Posting(int documentId, String rawDocumentId, int frequency)
     {
         this.documentId = documentId;
         this.frequency = frequency;
+        this.rawDoucmentId = rawDocumentId;
     }
 
     public int getDocumentId()
@@ -21,10 +26,22 @@ public class Posting
         return documentId;
     }
 
+    public String getRawDoucmentId()
+	{
+		return rawDoucmentId == null ? "" : rawDoucmentId;
+	}
+
+	public void setRawDoucmentId(String rawDoucmentId)
+	{
+		this.rawDoucmentId = rawDoucmentId;
+	}
+	
     public int getFrequency()
     {
         return frequency;
     }
+    
+    
 
     public void incrementFrequency()
     {

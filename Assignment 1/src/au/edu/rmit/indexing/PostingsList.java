@@ -10,9 +10,9 @@ public class PostingsList {
         postingsList = new ArrayList<Posting>();
     }
 
-    public void addPosting(int documentId, int inDocumentFreq)
+    public void addPosting(int documentId, String rawDocumentId, int inDocumentFreq)
     {
-        Posting newPosting = new Posting(documentId, inDocumentFreq);
+        Posting newPosting = new Posting(documentId, rawDocumentId, inDocumentFreq);
 
         // Make sure the new documentId is greater than the last.
         // The postings list should be in order, this is just in case.
@@ -33,12 +33,12 @@ public class PostingsList {
 
     public void updatePosting(int documentId, int inDocumentFreq)
     {
-        Posting newPosting = new Posting(documentId, inDocumentFreq);
+        Posting newPosting = new Posting(documentId, "", inDocumentFreq);
 
         int postingIndex = postingsList.indexOf(newPosting);
         if (postingIndex == -1)
         {
-            addPosting(documentId, inDocumentFreq);
+            addPosting(documentId, "", inDocumentFreq);
         }
         else
         {

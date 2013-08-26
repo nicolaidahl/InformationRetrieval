@@ -39,13 +39,6 @@ public class VariableByteEncoding {
         return byteArray.toArray(new Byte[0]);
     }
             
-    /*VBENCODE(numbers)
-    1 bytestream ← hi
-    2 for each n ∈ numbers
-    3 do bytes ← VBENCODENUMBER(n)
-    4 bytestream ← EXTEND(bytestream, bytes)
-    5 return bytestream*/
-
     public static Integer[] decode(Byte[] bytes)
     {
         ArrayList<Integer> values = new ArrayList<Integer>();

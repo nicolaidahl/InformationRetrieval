@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
+import au.edu.rmit.misc.VariableByteEncoding;
+
 public class SimpleIndexerModule implements IndexerModule
 {
     private static final String LEXICON_DELIM = "|";
@@ -55,19 +57,35 @@ public class SimpleIndexerModule implements IndexerModule
         DataOutputStream invlistDOS = new DataOutputStream(invlistBOS);
 
         long bytePos;
+        long byteLen;
         
         for (String term : index.keySet())
         {
             bytePos = invlistDOS.size();
-            lexiconWriter.println(term + LEXICON_DELIM
-                    + index.get(term).getFrequency() + LEXICON_DELIM
-                    + bytePos);
 
+            int prevDocId = 0;
+            
             for (Posting posting : index.get(term).getPostings())
             {
-                invlistDOS.writeInt(posting.getDocumentId());
-                invlistDOS.writeInt(posting.getFrequency());
+                for (Byte value : VariableByteEncoding.encode(posting.getDocumentId() - prevDocId))
+                {
+                    invlistDOS.write(value.byteValue());
+                }
+                for (Byte value : VariableByteEncoding.encode(posting.getFrequency()))
+                {
+                    invlistDOS.write(value.byteValue());
+                }
+                //invlistDOS.writeInt(posting.getDocumentId());
+                //invlistDOS.writeInt(posting.getFrequency());
+                
+                prevDocId = posting.getDocumentId();
             }
+
+            byteLen = invlistDOS.size() - bytePos;
+            lexiconWriter.println(term + LEXICON_DELIM
+                    + index.get(term).getFrequency() + LEXICON_DELIM
+                    + bytePos + LEXICON_DELIM
+                    + byteLen);
         }
 
         lexiconWriter.close();

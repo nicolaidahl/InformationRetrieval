@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import au.edu.rmit.indexing.Posting;
 import au.edu.rmit.indexing.PostingsList;
+import au.edu.rmit.misc.VariableByteEncoding;
 
 public class SimpleQueryEngine implements QueryEngine
 {
@@ -36,6 +37,7 @@ public class SimpleQueryEngine implements QueryEngine
 
         int documentFreq = lexiconList.get(term).documentFreq;
         int filePosition = (int) lexiconList.get(term).filePosition;
+        int invlistLength = (int) lexiconList.get(term).invlistLength;
         PostingsList termPosting = new PostingsList();
         
         SeekableByteChannel sbc;
@@ -43,22 +45,46 @@ public class SimpleQueryEngine implements QueryEngine
 		{
 			sbc = Files.newByteChannel(invlistFile.toPath());
 			
-			/* Calculate number of bits to read
-			 *  Get number of bytes per integer using integer size in bits divided by 8
-			 *  Multiply by 2 since each posting is made up of two integers
-			 *  Multiply by term document frequency to get size of full postings list
-			 */
-			ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE / 8 * 2 * documentFreq);
+			/* OLD
+			 *  Calculate number of bytes to read
+             *  Get number of bytes per integer using integer size in bits divided by 8
+             *  Multiply by 2 since each posting is made up of two integers
+             *  Multiply by term document frequency to get size of full postings list
+             *  
+            ByteBuffer buf = ByteBuffer.allocate(Integer.SIZE / 8 * 2 * documentFreq);
+
+            sbc.position(filePosition);
+            sbc.read(buf);
+         
+            buf.rewind();
+            while (buf.remaining() >= 4)
+            {   
+                termPosting.addPosting(buf.getInt(), buf.getInt());
+            }*/
+			
+			// Number of bytes to read read in from lexicon
+			ByteBuffer buf = ByteBuffer.allocate(invlistLength);
 
 	        sbc.position(filePosition);
 	        sbc.read(buf);
 	        
 	        buf.rewind();
-	        while (buf.remaining() >= 4)
+
+	        Byte[] byteArray = new Byte[invlistLength];
+	        while (buf.hasRemaining())
 	        {
-	            termPosting.addPosting(buf.getInt(), buf.getInt());
+	            byteArray[buf.position()] = buf.get();
 	        }
 	        sbc.close();
+	        
+	        Integer[] valueArray = VariableByteEncoding.decode(byteArray);
+	        int prevDocId = 0;
+	        for (int i = 0; i < (documentFreq * 2); i += 2)
+	        {
+	            int curDocId = prevDocId + valueArray[i].intValue();
+	            termPosting.addPosting(curDocId, valueArray[i+1].intValue());
+	            prevDocId = curDocId;
+	        }
 		}
 		catch (IOException e)
 		{
@@ -91,7 +117,8 @@ public class SimpleQueryEngine implements QueryEngine
 
 	    	    lexiconList.put(tokens[0],
 	    	            new LexiconTerm(Integer.parseInt(tokens[1]),
-	    	                            Long.parseLong(tokens[2])));
+	    	                            Long.parseLong(tokens[2]),
+	    	                            Long.parseLong(tokens[3])));
 	    	}
 
 	        br.close();
@@ -109,11 +136,13 @@ public class SimpleQueryEngine implements QueryEngine
     {
         public int documentFreq;
         public long filePosition;
+        public long invlistLength;
         
-        public LexiconTerm(int documentFreq, long filePosition)
+        public LexiconTerm(int documentFreq, long filePosition, long invlistLength)
         {
             this.documentFreq = documentFreq;
             this.filePosition = filePosition;
+            this.invlistLength = invlistLength;
         }
     }
 

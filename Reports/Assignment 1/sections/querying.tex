@@ -1,13 +1,46 @@
 %!TEX root = ../report.tex
 
-\section{Querying}
+\section{Index Search}
 \label{sec:querying}
 
-Explain your index search implementation. As part of your explanation you need to clearly describe:
-• the data structures you used for your lexicon when it is held in memory
-• how you look up corresponding term occurrence information in your invlists file
-This explanation should be around a page in length, but no longer than one and a half pages.
+\subsection*{Parsing of Query Terms}
+
+Our index search implementation first reads in the search terms from the command line and runs them through the same parser used to construct the inverted index. This is to ensure the same tokenisation and normalisation processes are applied to the search terms. Without this step search terms provided may not match the representation of an initially identical indexed term.
+
+\subsection*{Reading in the Lexicon}
+
+The lexicon of the inverted index is read into a standard Java HashMap collection, mapping a term $t$ to term data $(f_t, p_t$, where $f_t$ is the document frequency and $p_t$ is the address in the inverted list. The inverted list address is the byte offset of the postings list in the inverted list file.
+
+Implementing the lexicon as a HashMap provides a constant time lookup for each term's frequency data and inverted list address.
+
+\subsection*{Reading in the Postings List}
+
+The inverted list file is opened for random access using a Java SeekableByteChannel, which allows us to seek to arbitrary points in the file and retrieve multiple bytes at a time.
+
+Once a search term is parsed, the inverted list address and document frequency are retrieved from the lexicon hash.
+
+To retrieve the postings list we first seek to the byte offset stored in the inverted list address for the term in the inverted list file. Each posting is made up of two integers, the internal Document ID and in-document term frequency, so two integers multiplied by the document frequency for the term are read into a buffer.
+
+This buffer is parsed to construct a postings list consisting of postings of the form $(d, f_{d,t})$, denoting the Document ID followed by the within-document frequency of $t$. The postings list is passed back to the query program as a search result for further processing.
+
+\subsection*{Retrieving the Raw Document ID}
+
+The raw Document ID mapping is read from the map file into the DocIdHandler class referred to in section \ref{sec:indexing}. The DocIdHandler stores the raw Document IDs in an array, where the raw Document ID resides in the array index of its corresponding internal Document ID.
+The DocIdHandler handles this representation internally, and simply converts an internal Document ID to a raw Document ID when requested.
+
+Once the postings list is generated, this list is stepped over. Each raw Document ID is retrieved from the DocIdHandler and printed to the command line.
 
 
+\section{Index Size}
+\label{sec:indexsize}
 
-How large is your inverted index? How does this compare with the size of the original collection? Why is it larger/smaller than the original collection?
+When indexing the sample latimes collection, our final inverted index (including the lexicon, inverted list and document ID map files) with stopwords removed is approximately 176MB, where the original collection is approximately 476MB.
+
+\paragraph{}
+This is due to several factors:
+
+\begin{enumerate}
+	\item The original latimes collection includes markup tags and extra metadata about each document, which we discard.
+	\item We remove stopwords from the collection.
+	\item Where each term in the collection requires disk space for an entire ASCII representation of each occurrence of a term, our inverted list simply requires space for the byte representation of two integers for each document in which a term occurs. Although in the worst case, in which a term occurs only once in a single document, this in fact occupies more space on disk, in the vast majority of cases there is a significant space saving.
+\end{enumerate}

@@ -1,8 +1,16 @@
 %!TEX root = ../report.tex
 
-\section{Indexing}
+\section{Index Construction}
 \label{sec:indexing}
-When parsing the data set of houndreds of documents we search for the HEADLINE and TEXT tags, which contain content for each document. During this process the Document ID is noted when encountering the DOCID tag, and all other tags are skipped. Parsing content character by charater is performed in accordance with the following set of rules:
+When parsing the data set of hundreds of documents we search for the HEADLINE and TEXT tags, which contain content for each document. During this process the Document ID is noted when encountering the DOCID tag, and all other tags are skipped.
+
+\subsection*{Document ID Assignment}
+
+Internal Document IDs are assigned sequentially as they are encountered in the data set using a separate DocIdHandler class, which maintains a dynamically sized array of "raw" Document IDs from the data set (implemented using the standard Java ArrayList collection). The internal Document ID is an integer corresponding to the array index of the "raw" Document ID within the DocIdHandler class, to allow constant time lookups.
+
+\subsection*{Parsing}
+
+Parsing content character by charater is performed in accordance with the following set of rules:
 
 \begin{enumerate}
 	\item When reaching mark-up tags such as <p>, skip them
@@ -16,10 +24,23 @@ When parsing the data set of houndreds of documents we search for the HEADLINE a
 	\item If the token is less than three characters long, it is thrown away.
 \end{enumerate}
 
-Note that this means that the space character will most often be the terminator of a token and that we do not handle acronyms in any special way. As described by Manning et al.\,\cite[p. 24]{manning2008introduction} handling hyphens is often done in accordance with some heuristics that keep or remove hyphens based on various attributes of a token, e.g. its length. Our parser is simplified and will produce unwanted results for sequences such as "San Francisco-Los Angeles". It will, however, manage to index words like "co-operative/coorperative" under the same term ID.
+Note that this means that the space character will most often be the terminator of a token and that we do not handle acronyms in any special way. As described by Manning et al.\,\cite[p. 24]{manning2008introduction} handling hyphens is often done in accordance with some heuristics that keep or remove hyphens based on various attributes of a token, e.g. its length. Our parser is simplified and will produce unwanted results for sequences such as "San Francisco-Los Angeles". It will, however, manage to index words like "co-operative/cooperative" under the same term ID.
 
-After each document has been parsed, the tokens that were gathered are passed to the indexer module, that builds our in-memory lexicon and inverted list. The in-memory representation of the inverted index is a HashMap that maps each term to its postings list that, in turn, is represented as an ArrayList. By using these data structures we achieve a constant-time insertion for each token. We guarantee this, as insertion into the postings list is always done to the end of the list. Note that the list will stay sorted, as we assign our own increasing Document IDs.
+\subsection*{Inverted Index Construction in Memory}
 
-The inverted index implementation was inspired by Manning et al.\,\cite{manning2008introduction}. We produce a lexicon, where each entry consists of the term, the total term frequency in the data set, and the byte offset into our inverted list where the postings for the term is kept. These are separated by the pipe character and each entry is on its own line. The inverted list is saved on disk as raw, unformatted bytes. If a term $t$ occurs in document $d$ there will be a posting $(d, f_{d,t})$ denoting the Document ID followed by the in-document frequency of $t$.
+After each document has been parsed, the tokens that were gathered are passed to the indexer module as a term list $(t, f_{d,t})$, where $t$ denotes the term and $f_{d,t}$ denotes the term frequency, in this context the within-document frequency of the term.
 
+The in-memory representation of the inverted index is a HashMap that maps each term $t$ to a document frequency $f_t$ and a list of postings of the form $(d, f_{d,t})$, where $d$ denotes the Document ID and $f_{d,t}$ again denotes the within-document frequency of the term. This, in turn, is represented as an ArrayList, sorted by Document ID.
+
+Since our postings list insertion method inserts new postings in sort order, it guarantees a constant-time insertion of a document where the Document ID is greater than all existing Document IDs, and a linear-time insertion in other cases. We consistently provide a constant-time insertion in our parser implementation, as Document IDs are assigned sequentially and therefore insertion into the postings list is always done at the end.
+
+Initially we tried passing a raw term list for each document to the indexer. Aggregating the terms within the parser provides a dramatic performance improvement when adding the terms to the inverted index, however, as each term requires only a single insertion into the postings list.
+
+\subsection*{Inverted Index Representation on Disk}
+
+The inverted index implementation was inspired by Manning et al.\,\cite{manning2008introduction}.
+
+We produce a lexicon, where each entry consists of the term $t$, the document frequency $f_t$, and the byte offset in our inverted list file. These are separated by the pipe character and each term entry is separated by a newline.
+
+The inverted list is saved on disk as a binary file consisting of non-delimited binary integer values, to be retrieved via the byte offset stored in the lexicon. If a term $t$ occurs in document $d$ there will be a posting of two integers $(d, f_{d,t})$ denoting the Document ID followed by the within-document frequency of $t$.
 

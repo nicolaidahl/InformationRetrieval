@@ -8,11 +8,11 @@ When parsing the data set of houndreds of documents we search for the HEADLINE a
 	\item When reaching mark-up tags such as <p>, skip them
 	\item When parsing a token starting with a letter, only allow letters, numbers, and hyphens as non-terminators of the token. When reaching a terminator for a token containing a hyphen, the word is analyzed and handled in the following way:
 	\begin{enumerate}
-		\item If there is only one hyphen in the word and the first part is co, pre, meta, or multi, the hyphen is removed and the two parts are concatenated into one\,\cite{ibm13}.
+		\item If there is only one hyphen in the word and the first part is a common prefix such as co, pre, meta, or multi, the hyphen is removed and the two parts are concatenated into one\,\cite{ibm13}\cite{grammar13}.
 		\item If there is only one hyphen in the word and the last term ends on 'ed' (e.g. case-based) the hyphen is kept\,\cite{ibm13}.
 		\item Otherwise all hyphens in the token are removed and a token with $n$ hyphens becomes $n+1$ tokens with no hyphens.
 	\end{enumerate}
-	\item When parsing a token starting with a number, only allow letters, numbers, dots, and commas as non-terminators of the token.
+	\item When parsing a token starting with a digit, only allow letters, digits, dots, and commas as non-terminators of the token. If commas or dots are at the end of a token they are removed.
 	\item If the token is less than three characters long, it is thrown away.
 \end{enumerate}
 

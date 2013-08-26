@@ -10,13 +10,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import au.edu.rmit.indexing.IndexerModule;
-import au.edu.rmit.misc.TokenType;
 import au.edu.rmit.stopping.StopperModule;
-import static java.util.Arrays.asList;
 
 
 
@@ -31,6 +30,7 @@ public class SimpleParser
     boolean inDocument = false;
     String rawDocId = "";
     int currentDocId;
+    private HashSet<String> commonPrefixes;
 
 
     public SimpleParser(StopperModule stopperModule, 
@@ -42,53 +42,24 @@ public class SimpleParser
         this.indexerModule = indexerModule;
         this.documentHandler = documentHandler;
         this.shouldPrintTerms = shouldPrintTerms;
-    }
-
-    private HashSet<Character> getTerminatorChar(TokenType token)
-    {
-        switch (token)
-        {
-        case STAG: {
-        	HashSet<Character> ret = new HashSet<Character>();
-        	ret.add('>');
-            return ret;
-        }
-        case ETAG: {
-        	HashSet<Character> ret = new HashSet<Character>();
-        	ret.add('>');
-            return ret;
-        }
-        case WORD: {
-        	HashSet<Character> ret = new HashSet<Character>();
-        	ret.add('<');
-            return ret;
-        }
-        case CONTENT: {
-        	HashSet<Character> ret = new HashSet<Character>();
-        	ret.addAll(asList(' ', '.', ',', ';', ':', '\'', '\"', '(', ')', '[', ']', '?', '-', '/', '\\', '!'));
-            return ret;
-        }
-        default: {
-        	HashSet<Character> ret = new HashSet<Character>();
-        	ret.add(' ');
-            return ret;
-        }
-        }
+        
+        commonPrefixes = new HashSet<String>(Arrays.asList("co", "pre", "meta", "multi", "auto", 
+        		"circum", "com", "con", "contra", "de", "dis", "en", "ex", "extra", "hetero", "homo", 
+        		"hyper", "im", "in", "inter", "intra", "marco", "micro", "mono", "non", "omni", 
+        		"post", "pre", "pro", "sub", "syn", "trans", "tri", "un", "uni"));
     }
 
     
 
-    private String consumeToken(TokenType tt, Reader reader) throws IOException
+    private String consumeToken(Reader reader, TokenTerminatorDeterminer terminator) throws IOException
     {
         StringBuilder sb = new StringBuilder();
-
-        HashSet<Character> chars = getTerminatorChar(tt);
 
         int r;
         while ((r = reader.read()) != -1) {
             char ch = (char) r;
 
-            if(chars.contains(ch))
+            if(terminator.shouldTerminateToken(ch))
                 break;
 
             sb.append(ch);
@@ -115,11 +86,11 @@ public class SimpleParser
                     char nextChar = (char) r;
                     if(nextChar != '/')
                     {
-                        consumeToken(TokenType.STAG, reader);
+                        consumeToken(reader, new TagTerminator());
                     }
                     else
                     {
-                        String tagName = consumeToken(TokenType.ETAG, reader);
+                        String tagName = consumeToken(reader, new TagTerminator());
                         if(terminatorTagName != null && tagName.equals(terminatorTagName))
                             break;
                     }
@@ -127,8 +98,52 @@ public class SimpleParser
             }
             else if(Character.isLetter(ch))
             {
-                String aWord = ch + consumeToken(TokenType.CONTENT, reader);
+            	LetterContentTerminator terminator = new LetterContentTerminator();
+            	
+                String aWord = ch + consumeToken(reader, terminator);
                 String lowerCaseTerm = aWord.toLowerCase();
+                ArrayList<String> tokens;
+                
+                if(terminator.doesContainHypens())
+                	tokens = handleHyphenatedToken(lowerCaseTerm);
+                else
+                {
+                	tokens = new ArrayList<String>();
+                	tokens.add(lowerCaseTerm);
+                }
+                	
+                for (String token : tokens)
+				{
+                    if(!stopperModule.isStopWord(token))
+                    {
+                    	if(shouldPrintTerms)
+                    		System.out.println(token);
+                    	
+                    	termHandler.handleTerm(token);
+                    }
+
+				}
+            }
+            else if(Character.isDigit(ch))
+            {
+            	NumberContentTerminator terminator = new NumberContentTerminator();
+            	String aWord = ch + consumeToken(reader, terminator);
+            	String lowerCaseTerm = aWord.toLowerCase();
+            	
+            	//If a comma or dot was at the end of the token, remove them
+            	if(terminator.wasLastCharWasDotOrComma())
+            	{
+            		int charsToTrim = 0;
+            		for (int i = lowerCaseTerm.length() - 1; i >= 0; i--)
+					{
+						if(lowerCaseTerm.charAt(i) == ',' || lowerCaseTerm.charAt(i) == '.')
+							charsToTrim++;
+						else
+							break;
+					}
+            		lowerCaseTerm = lowerCaseTerm.substring(0, lowerCaseTerm.length() - charsToTrim);
+            	}
+            	
                 if(!stopperModule.isStopWord(lowerCaseTerm))
                 {
                 	if(shouldPrintTerms)
@@ -140,7 +155,34 @@ public class SimpleParser
         }
     }
 
-    private void skipUntil(String s, Reader reader) throws IOException
+    
+    
+    private ArrayList<String> handleHyphenatedToken(String hyphenatedToken)
+	{
+		String[] parts = hyphenatedToken.split("-");
+
+		if(parts.length == 2)
+		{
+			if(parts[1].matches("^.{2,}ed$"))
+			{
+				return new ArrayList<String>(Arrays.asList(hyphenatedToken));
+			}
+			else if(commonPrefixes.contains(parts[0]))
+			{
+				ArrayList<String> list = new ArrayList<String>();
+				list.add(parts[0] + parts[1]);
+				return list;
+			} 
+		}
+		
+		
+		return new ArrayList<String>(Arrays.asList(parts));
+		
+	}
+
+
+
+	private void skipUntil(String s, Reader reader) throws IOException
     {
         StringBuilder tempString = new StringBuilder();
 
@@ -176,7 +218,7 @@ public class SimpleParser
                     char nextChar = (char) r;
                     if(nextChar != '/')
                     {
-                        String tagName = nextChar + consumeToken(TokenType.STAG, reader);
+                        String tagName = nextChar + consumeToken(reader, new TagTerminator());
 
                         if(tagName.equals("DOC"))
                         {
@@ -184,11 +226,9 @@ public class SimpleParser
                         }
                         else if(tagName.equals("DOCNO"))
                         {
-                            rawDocId = consumeToken(TokenType.WORD, reader);
-                            consumeToken(TokenType.ETAG, reader);
+                            rawDocId = consumeToken(reader, new WordTerminator());
+                            consumeToken(reader, new TagTerminator());
 
-                            
-                            
                             // Get new docId and initialise term list
                             currentDocId = documentHandler.getDocumentId(rawDocId.trim());
                             docTermList = new HashMap<String, Integer>();
@@ -202,14 +242,17 @@ public class SimpleParser
 								@Override
 								public void handleTerm(String term)
 								{
-									if (docTermList.containsKey(term))
-				                	{
-					                	docTermList.put(term, new Integer(docTermList.get(term).intValue() + 1));
-				                	}
-				                	else
-				                	{
-					                	docTermList.put(term, new Integer(1));
-				                	}
+									if(term.length() > 2)
+									{
+										if (docTermList.containsKey(term))
+					                	{
+						                	docTermList.put(term, new Integer(docTermList.get(term).intValue() + 1));
+					                	}
+					                	else
+					                	{
+						                	docTermList.put(term, new Integer(1));
+					                	}
+									}
 									
 								}
 							});
@@ -221,7 +264,7 @@ public class SimpleParser
                     }
                     else
                     {
-                        String tagName = consumeToken(TokenType.ETAG, reader);
+                        String tagName = consumeToken(reader, new TagTerminator());
 
                         if(tagName.equals("DOC"))
                         {
@@ -234,8 +277,6 @@ public class SimpleParser
                         {
                             rawDocId = "";
                         }
-                        //else
-                            //consumeSomething(reader);
 
 
                     }
@@ -297,14 +338,75 @@ interface TermHandler
 	public void handleTerm(String term);
 }
 
-/*class DocNoMapping 
+interface TokenTerminatorDeterminer
 {
-    public int genId;
-    public String docNo;
+	public boolean shouldTerminateToken(char ch);
+}
 
-    public DocNoMapping(int genId, String docNo)
-    {
-        this.genId = genId;
-        this.docNo = docNo;
-    }
-}*/
+class LetterContentTerminator implements TokenTerminatorDeterminer
+{
+	private boolean containHypens = false;
+	
+
+	@Override
+	public boolean shouldTerminateToken(char ch)
+	{
+		if(ch == '-')
+		{
+			containHypens = true;
+			return false;
+		}
+		
+		return !Character.isLetterOrDigit(ch);
+	}
+
+	public boolean doesContainHypens()
+	{
+		return containHypens;
+	}
+}
+
+class NumberContentTerminator implements TokenTerminatorDeterminer
+{
+	private boolean lastCharWasDotOrComma = false;
+	
+	@Override
+	public boolean shouldTerminateToken(char ch)
+	{
+		if(Character.isLetterOrDigit(ch))
+		{
+			lastCharWasDotOrComma = false;
+			return false;
+		}
+		else if(ch == '.' || ch == ',')
+		{
+			lastCharWasDotOrComma = true;
+			return false;
+		}
+		
+		return true;
+	}
+
+	public boolean wasLastCharWasDotOrComma()
+	{
+		return lastCharWasDotOrComma;
+	}
+}
+
+class TagTerminator implements TokenTerminatorDeterminer
+{
+	@Override
+	public boolean shouldTerminateToken(char ch)
+	{
+		return ch == '>';
+	}
+}
+
+class WordTerminator implements TokenTerminatorDeterminer
+{
+	@Override
+	public boolean shouldTerminateToken(char ch)
+	{
+		return ch == '<';
+	}
+}

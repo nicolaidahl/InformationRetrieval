@@ -1,7 +1,6 @@
 package au.edu.rmit.misc;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class VariableByteEncoding {
 

@@ -2,7 +2,9 @@ package au.edu.rmit.parsing;
 
 public class InvalidDocumentIdException extends Exception {
 
-    public InvalidDocumentIdException() {
+	private static final long serialVersionUID = 1L;
+
+	public InvalidDocumentIdException() {
         // TODO Auto-generated constructor stub
     }
 

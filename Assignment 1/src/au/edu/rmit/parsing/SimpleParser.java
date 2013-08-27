@@ -24,12 +24,19 @@ public class SimpleParser
     StopperModule stopperModule;
     IndexerModule indexerModule;
     DocIdHandler documentHandler;
+    
+    //Buffered terms
     HashMap<String, Integer> docTermList;
+    
+    //Indicating if each term found should be printed
     boolean shouldPrintTerms;
 
+    //Document indicators and identification
     boolean inDocument = false;
     String rawDocId = "";
     int currentDocId;
+    
+    //The list of common prefixes when analyzing hyphenized tokens
     private HashSet<String> commonPrefixes;
 
 
@@ -50,7 +57,15 @@ public class SimpleParser
     }
 
     
-
+    /**
+     * Consumes characters from the given reader until the token terminator
+     * tells it to terminate
+     * @param reader Any type of input reader
+     * @param terminator Some instance that can determine when the token should be
+     * terminated
+     * @return The parsed token
+     * @throws IOException If reading from input fails
+     */
     private String consumeToken(Reader reader, TokenTerminatorDeterminer terminator) throws IOException
     {
         StringBuilder sb = new StringBuilder();
@@ -69,8 +84,15 @@ public class SimpleParser
     }
     
     
-
-    private void consumeContentUntil(Reader reader, String terminatorTagName, TermHandler termHandler) 
+    /**
+     * Will parse input until the given terminator tag is parsed. Note that this method
+     * works on a tag level as opposed to consumeToken
+     * @param reader Any type of input reader
+     * @param terminatorTagName The tag name that will terminate the method
+     * @param tokenHandler A handler of any token that has been parsed
+     * @throws IOException If reading from input fails
+     */
+    private void consumeContentUntil(Reader reader, String terminatorTagName, TokenHandler tokenHandler) 
     		throws IOException
     {
         int r;
@@ -78,6 +100,7 @@ public class SimpleParser
         {
             char ch = (char) r;
 
+            //A tag was encountered
             if(ch == '<')
             {
                 r = reader.read();
@@ -90,12 +113,14 @@ public class SimpleParser
                     }
                     else
                     {
+                    	//End this method call if we've reached the tag we were looking for
                         String tagName = consumeToken(reader, new TagTerminator());
                         if(terminatorTagName != null && tagName.equals(terminatorTagName))
                             break;
                     }
                 }
             }
+            //Beginning of a word token
             else if(Character.isLetter(ch))
             {
             	LetterContentTerminator terminator = new LetterContentTerminator();
@@ -104,6 +129,7 @@ public class SimpleParser
                 String lowerCaseTerm = aWord.toLowerCase();
                 ArrayList<String> tokens;
                 
+                //Handle the case where the token is hyphenated
                 if(terminator.doesContainHypens())
                 	tokens = handleHyphenatedToken(lowerCaseTerm);
                 else
@@ -112,6 +138,7 @@ public class SimpleParser
                 	tokens.add(lowerCaseTerm);
                 }
                 	
+                //Add all the tokens if the stopper module permits
                 for (String token : tokens)
 				{
                     if(!stopperModule.isStopWord(token))
@@ -119,11 +146,12 @@ public class SimpleParser
                     	if(shouldPrintTerms)
                     		System.out.println(token);
                     	
-                    	termHandler.handleTerm(token);
+                    	tokenHandler.handleTerm(token);
                     }
 
 				}
             }
+            //Beginning of a number token
             else if(Character.isDigit(ch))
             {
             	NumberContentTerminator terminator = new NumberContentTerminator();
@@ -144,19 +172,25 @@ public class SimpleParser
             		lowerCaseTerm = lowerCaseTerm.substring(0, lowerCaseTerm.length() - charsToTrim);
             	}
             	
+            	//Add all the tokens if the stopper module permits
                 if(!stopperModule.isStopWord(lowerCaseTerm))
                 {
                 	if(shouldPrintTerms)
                 		System.out.println(lowerCaseTerm);
                 	
-                	termHandler.handleTerm(lowerCaseTerm);
+                	tokenHandler.handleTerm(lowerCaseTerm);
                 }
             }
         }
     }
 
     
-    
+    /**
+     * Will handle a hyphenated token according to the rule set described
+     * in the report
+     * @param hyphenatedToken The token
+     * @return A list of handled tokens
+     */
     private ArrayList<String> handleHyphenatedToken(String hyphenatedToken)
 	{
 		String[] parts = hyphenatedToken.split("-");
@@ -181,7 +215,12 @@ public class SimpleParser
 	}
 
 
-
+    /**
+     * Will skip the reader to a given string is encountered
+     * @param s The string to encounter
+     * @param reader A given input reader
+     * @throws IOException If the input reading fails
+     */
 	private void skipUntil(String s, Reader reader) throws IOException
     {
         StringBuilder tempString = new StringBuilder();
@@ -204,26 +243,37 @@ public class SimpleParser
         }
     }
 
+	/**
+	 * The specific-purpose parsing method that will look for the HEADLINE
+	 * TEXT and DOCNO tags to determine how certain parts of the document need
+	 * to be parsed in order to retrieve the content and id of documents
+	 * @param reader Any given input reader
+	 * @throws IOException If the reader fails to read the input
+	 */
     private void consumeSomething(Reader reader) throws IOException
     {
         int r;
         while ((r = reader.read()) != -1) {
             char ch = (char) r;
 
+            // We encountered a tag
             if(ch == '<')
             {
                 r = reader.read();
                 if (r != -1)
                 {
                     char nextChar = (char) r;
+                    //It was not an end tag
                     if(nextChar != '/')
                     {
                         String tagName = nextChar + consumeToken(reader, new TagTerminator());
 
+                        //It was the beginning of a document
                         if(tagName.equals("DOC"))
                         {
                             inDocument = true;
                         }
+                        //It was the beginning of the document number
                         else if(tagName.equals("DOCNO"))
                         {
                             rawDocId = consumeToken(reader, new WordTerminator());
@@ -235,9 +285,11 @@ public class SimpleParser
                             
                             
                         }
+                        //It was the beginning of content
                         else if(tagName.equals("HEADLINE") || tagName.equals("TEXT"))
                         {
-                            consumeContentUntil(reader, tagName, new TermHandler()
+                        	//Consume content until we reach the end tag
+                            consumeContentUntil(reader, tagName, new TokenHandler()
 							{
 								@Override
 								public void handleTerm(String term)
@@ -257,11 +309,13 @@ public class SimpleParser
 								}
 							});
                         }
+                        //Otherwise just skip forward
                         else
                         {
                             skipUntil("</" + tagName + ">", reader);
                         }
                     }
+                    //Otherwise it was an end tag
                     else
                     {
                         String tagName = consumeToken(reader, new TagTerminator());
@@ -287,6 +341,10 @@ public class SimpleParser
         }
     }
 
+    /**
+     * The public interface of the SimpleParser to allow parsing of a file
+     * @param file The file to be parsed
+     */
     public void parseFile(File file) {
 
         try (InputStream in = new FileInputStream(file);
@@ -302,9 +360,14 @@ public class SimpleParser
         }
     }
     
+    /**
+     * The public interface of the SimpleParser to allow parsing of a query term
+     * @param queryString The query string to be parsed
+     * @return 
+     */
     public ArrayList<String> parseQueryString(String queryString)
     {
-    	final ArrayList<String> outputTerms = new ArrayList<String>();
+    	final ArrayList<String> outputTokens = new ArrayList<String>();
     	
     	try
 		{
@@ -313,12 +376,12 @@ public class SimpleParser
             // buffer for efficiency
             Reader bufferedReader = new BufferedReader(reader);
         	
-			consumeContentUntil(bufferedReader, null, new TermHandler()
+			consumeContentUntil(bufferedReader, null, new TokenHandler()
 			{
 				@Override
 				public void handleTerm(String term)
 				{
-					outputTerms.add(term);
+					outputTokens.add(term);
 					
 				}
 			});
@@ -328,12 +391,12 @@ public class SimpleParser
 			e.printStackTrace();
 		}
     	
-    	return outputTerms;
+    	return outputTokens;
     }
 
 }
 
-interface TermHandler
+interface TokenHandler
 {
 	public void handleTerm(String term);
 }

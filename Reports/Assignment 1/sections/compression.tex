@@ -3,3 +3,20 @@
 \section{Compression}
 \label{sec:compression}
 
+Compression of the index is achieved using a variable-byte coding algorithm to encode document IDs and frequencies before storage in the inverted list file. This is implemented from the algorithm described by Manning et al.\,\cite[p. 96-98]{manning2008introduction}
+
+\paragraph{}
+Integers are encoding using a variable byte encoding scheme, where the most significant bit is a continuation bit and the remaining bits of the byte encode part of the integer. The continuation bit is set to 0 for all but the last byte of the encoded integer, which is set to 1 to signal the end of the encoded value.
+
+Encoded variable byte codes are decoded by reading a series of bytes with continuation bit 0 followed by a byte with continuation bit 1. The remaining 7 bits of each of these bytes are concatenated and converted to an integral value.
+
+\paragraph{}
+Using variable byte encoding makes it much more efficient to store smaller values. Since postings lists are sorted by document ID we can exploit this by storing the gaps between document IDs rather than the document IDs themselves. Aside from cases in which the document is first in the postings list, where by necessity the gap value is equal to the document ID, the gap value will always be smaller than the document ID itself.
+
+\paragraph{}
+Compressing the index is undertaken post-processing, when the lexicon and inverted list are written to disk. We have elected to store the size in bytes of the postings list for each term in the lexicon to allow us to read the byte list in buffer in one go and minimise disk reads.
+
+The postings list for a term is decoded into an array of integers when it is read in from the inverted list file for query processing.
+
+\paragraph{}
+The combination of these two compression methods brings the size of our final inverted index size down by two thirds from approx. 176MB to approx. 57MB.

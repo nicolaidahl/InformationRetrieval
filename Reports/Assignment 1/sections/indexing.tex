@@ -38,7 +38,7 @@ Initially we tried passing a raw term list for each document to the indexer. Agg
 
 \subsection*{Inverted Index Representation on Disk}
 
-The inverted index implementation was inspired by Manning et al.\,\cite{manning2008introduction}. We produce a lexicon, where each entry consists of the term $t$, the document frequency $f_t$, and the byte offset in our inverted list file. These are separated by the pipe character and each term entry is separated by a newline.
+The inverted index implementation was inspired by Manning et al.\,\cite{manning2008introduction}. We produce a lexicon, where each entry consists of the term $t$, the document frequency $f_t$, the byte offset of the associated postings list in our inverted list file and the byte size of the postings list entry. The byte size is used for retrieving compressed data, as discussed in section \ref{sec:compression}. These fields are separated by the pipe character and each term entry is separated by a newline.
 
-The inverted list is saved on disk as a binary file consisting of non-delimited binary integer values, to be retrieved via the byte offset stored in the lexicon. If a term $t$ occurs in document $d$ there will be a posting of two integers $(d, f_{d,t})$ denoting the Document ID followed by the within-document frequency of $t$.
+The inverted list is saved on disk as a binary file consisting of variable byte encoded integer values (see section \ref{sec:compression}, to be retrieved via the byte offset and byte size stored in the lexicon. If a term $t$ occurs in document $d$ there will be a posting of two integers $(d, f_{d,t})$ denoting the Document ID followed by the within-document frequency of $t$.
 

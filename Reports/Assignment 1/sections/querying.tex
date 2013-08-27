@@ -15,7 +15,7 @@ Implementing the lexicon as a HashMap provides a constant time lookup for each t
 
 \subsection*{Reading in the Postings List}
 
-The inverted list file is opened for random access using a Java SeekableByteChannel, which allows us to seek to arbitrary points in the file and retrieve multiple bytes at a time.
+The inverted list file is opened for random access using a Java SeekableByteChannel, which allows us to seek to arbitrary points in the file and retrieve multiple bytes at a time\,\cite{seekablebytechannel}.
 
 Once a search term is parsed, the inverted list address and document frequency are retrieved from the lexicon hash.
 
@@ -25,8 +25,7 @@ This buffer is parsed to construct a postings list consisting of postings of the
 
 \subsection*{Retrieving the Raw Document ID}
 
-The raw Document ID mapping is read from the map file into the DocIdHandler class referred to in section \ref{sec:indexing}. The DocIdHandler stores the raw Document IDs in an array, where the raw Document ID resides in the array index of its corresponding internal Document ID.
-The DocIdHandler handles this representation internally, and simply converts an internal Document ID to a raw Document ID when requested.
+The raw Document ID mapping is read from the map file into the DocIdHandler class referred to in Section \ref{sec:indexing}. The DocIdHandler stores the raw Document IDs in an array, where the raw Document ID resides in the array index of its corresponding internal Document ID. The DocIdHandler handles this representation internally, and simply converts an internal Document ID to a raw Document ID when requested.
 
 Once the postings list is generated, this list is stepped over. Each raw Document ID is retrieved from the DocIdHandler and printed to the command line.
 

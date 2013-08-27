@@ -4,5 +4,5 @@ Nicolai Dahl Blicher-Petersen s3441163
 Daniel Jonathan Smith s3361789
 
 Running details:
-Indexing: java -jar index [-s <stoplist>] [-p] <sourcefile>
-Querying: java -jar search <lexicon> <invlists> <map> <queryterm 1> [... <queryterm N>]
+Indexing: java -jar index.jar [-s <stoplist>] [-p] <sourcefile>
+Querying: java -jar search.jar <lexicon> <invlists> <map> <queryterm 1> [... <queryterm N>]

@@ -270,7 +270,7 @@ public class SimpleParser
                         {
                             inDocument = false;
                         	// Add current document to term list
-                        	indexerModule.addDocument(currentDocId, rawDocId, docTermList);
+                        	indexerModule.addDocument(currentDocId, docTermList);
                         }
 
                         if(tagName.equals("DOCNO"))

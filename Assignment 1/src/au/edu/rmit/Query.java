@@ -26,13 +26,18 @@ public class Query {
     	}
     	
     	
+        // Read in filenames from command line and make sure they exist
     	File lexiconFile = new File(args[0]);
     	validateFile(lexiconFile, "lexicon");
+
     	File invlistFile = new File(args[1]);
     	validateFile(invlistFile, "inverted list");
+
     	File mapFile = new File(args[2]);
     	validateFile(mapFile, "map");
 
+        // Turn search terms from command line into a single string for parsing.
+        // This ensures the same as rules are applied as indexing.
     	StringBuilder searchTerms = new StringBuilder();
     	String delimiter = "";
     	for(int i = 3; i < args.length; i++)
@@ -42,18 +47,22 @@ public class Query {
     		delimiter = " ";
     	}
 
-    	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile);
     	SimpleParser parser = new SimpleParser(new DummyStopperModule(), null, null, false);
-    	DocIdHandler docIdHandler = new DocIdHandler(mapFile);
-    	
     	ArrayList<String> parsedTerms = parser.parseQueryString(searchTerms.toString());
+
+        // Initialise query engine and document handler
+    	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile);
+    	DocIdHandler docIdHandler = new DocIdHandler(mapFile);
     	
     	for (String term : parsedTerms)
     	{
+            // Retrieve search result from query engine and print results.
     		SearchResult result = engine.getSearchResult(term);
     		
     		System.out.println(result.getSearchTerm());
     		System.out.println(result.getFrequency());
+
+            // Get raw document ID for each posting from doc ID handler and print to stdout with frequency
     		for (Posting posting : result.getPostings())
 			{
 				try {

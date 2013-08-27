@@ -14,8 +14,13 @@ public class PostingsList {
     {
         Posting newPosting = new Posting(documentId, inDocumentFreq);
 
-        // Make sure the new documentId is greater than the last.
-        // The postings list should be in order, this is just in case.
+        /* Check if the new documentId is greater than the last in the postingsList.
+         * If so, add to the end.
+         * If not, insert in natural sort order
+         *
+         * This guarantees the list will be sorted but still have constant-time insertion
+         *   when adding documents sequentially.
+         */
         if (!(postingsList.isEmpty())
                 && postingsList.get(postingsList.size() - 1).getDocumentId() > documentId)
         {
@@ -31,6 +36,7 @@ public class PostingsList {
         }
     }
 
+    // Update an individual posting
     public void updatePosting(int documentId, int inDocumentFreq)
     {
         Posting newPosting = new Posting(documentId, inDocumentFreq);

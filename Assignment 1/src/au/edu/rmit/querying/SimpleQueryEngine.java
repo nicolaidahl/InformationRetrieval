@@ -27,7 +27,9 @@ public class SimpleQueryEngine implements QueryEngine
         this.lexiconFile = lexicon;
         this.invlistFile = invlist;
         lexiconList = new HashMap<String, LexiconTerm>();
-        readIndex();
+
+        // Read index when query engine is created
+        readLexicon();
     }
 
     public SearchResult getSearchResult(String term)
@@ -35,9 +37,13 @@ public class SimpleQueryEngine implements QueryEngine
         if (!lexiconList.containsKey(term))
             return new SearchResult(term, new ArrayList<Posting>(), 0);
 
+		// Number of documents containing term.
         int documentFreq = lexiconList.get(term).documentFreq;
+		// Byte offset of postings list from lexicon.
         int filePosition = (int) lexiconList.get(term).filePosition;
+		// Byte size of postings list from lexicon.
         int invlistLength = (int) lexiconList.get(term).invlistLength;
+
         PostingsList termPosting = new PostingsList();
         
         SeekableByteChannel sbc;
@@ -45,7 +51,7 @@ public class SimpleQueryEngine implements QueryEngine
 		{
 			sbc = Files.newByteChannel(invlistFile.toPath());
 			
-			/* OLD
+			/*--- OLD - Non variable byte code version ---*\
 			 *  Calculate number of bytes to read
              *  Get number of bytes per integer using integer size in bits divided by 8
              *  Multiply by 2 since each posting is made up of two integers
@@ -60,9 +66,10 @@ public class SimpleQueryEngine implements QueryEngine
             while (buf.remaining() >= 4)
             {   
                 termPosting.addPosting(buf.getInt(), buf.getInt());
-            }*/
+            }
+            \*--- END - Non variable byte code version ---*/
 			
-			// Number of bytes to read read in from lexicon
+            // Create byte buffer of the saem size as the postings list.
 			ByteBuffer buf = ByteBuffer.allocate(invlistLength);
 
 	        sbc.position(filePosition);
@@ -70,6 +77,7 @@ public class SimpleQueryEngine implements QueryEngine
 	        
 	        buf.rewind();
 
+            // Read bytes from buffer into Byte array.
 	        Byte[] byteArray = new Byte[invlistLength];
 	        while (buf.hasRemaining())
 	        {
@@ -77,7 +85,10 @@ public class SimpleQueryEngine implements QueryEngine
 	        }
 	        sbc.close();
 	        
+            // Decode variable byte encoded postings list into integer array.
 	        Integer[] valueArray = VariableByteEncoding.decode(byteArray);
+
+            // Read postings list from integer array.
 	        int prevDocId = 0;
 	        for (int i = 0; i < (documentFreq * 2); i += 2)
 	        {
@@ -88,7 +99,7 @@ public class SimpleQueryEngine implements QueryEngine
 		}
 		catch (IOException e)
 		{
-			System.err.println("Unable to retrieve search results for term " + term);
+			System.err.println("Error reading file while retrieving search results for term " + term);
 			e.printStackTrace();
 		}
 		catch (Exception e)
@@ -99,11 +110,11 @@ public class SimpleQueryEngine implements QueryEngine
 
         return new SearchResult(term, termPosting.getPostingsAsArrayList(), documentFreq);
     }
-    
-    private void readIndex() 
+
+    private void readLexicon() 
     {
-    	
         BufferedReader br;
+
         try
 		{
         	
@@ -122,16 +133,17 @@ public class SimpleQueryEngine implements QueryEngine
 	    	}
 
 	        br.close();
-		} catch (Exception e)
+		}
+        catch (Exception e)
 		{
 			System.err.println("Unable to load lexicon file");
 			e.printStackTrace();
 			System.exit(-1);
 		} 
-
         
     }
 
+    /* Class to hold term information read in from lexicon */
     private static class LexiconTerm
     {
         public int documentFreq;

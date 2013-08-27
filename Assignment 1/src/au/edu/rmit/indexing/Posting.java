@@ -31,12 +31,14 @@ public class Posting
         frequency++;
     }
 
+    // hashCode for Posting should be based on documentId
     @Override
     public int hashCode()
     {
         return new Integer(this.documentId).hashCode();
     }
 
+    // two Posting objects are considered equal if they have the same documentId
     @Override
     public boolean equals(Object o)
     {

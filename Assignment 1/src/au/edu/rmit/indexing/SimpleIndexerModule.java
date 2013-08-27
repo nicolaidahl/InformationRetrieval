@@ -21,17 +21,17 @@ public class SimpleIndexerModule implements IndexerModule
         this.index = new HashMap<String, PostingsList>();
     }
 
+    /* Index an individual word.
+     * Avoid adding word by word if possible, addDocument is _much_ faster */
     public void indexWord(String term, int documentId)
     {
         if (!(index.containsKey(term)))
             index.put(term, new PostingsList());
 
         index.get(term).updatePosting(documentId);
-
-        //System.out.println(documentId + ": " + term);
     }
 
-    public void addDocument(int documentId, String rawDocumentId, HashMap<String, Integer> termList)
+    public void addDocument(int documentId, HashMap<String, Integer> termList)
     {
         for (String term : termList.keySet())
         {
@@ -41,10 +41,9 @@ public class SimpleIndexerModule implements IndexerModule
             if (!(index.containsKey(term)))
                 index.put(term, new PostingsList());
 
+            // Add document ID and frequency to postings list for term
             index.get(term).addPosting(documentId, frequency);
-
         }
-        //System.out.println(documentId);
     }
 
     public void writeIndex(File lexicon, File invlist) throws IOException
@@ -64,23 +63,31 @@ public class SimpleIndexerModule implements IndexerModule
             bytePos = invlistDOS.size();
 
             int prevDocId = 0;
-            
+
             for (Posting posting : index.get(term).getPostings())
             {
+                /*--- OLD - Non variable byte code version ---*\
+                invlistDOS.writeInt(posting.getDocumentId());
+                invlistDOS.writeInt(posting.getFrequency());
+                \*--- END - Non variable byte code version ---*/
+
+                // Write variable byte encoded document ID to inverted list file
+                // Write gap between previous doc ID and this one to save space
                 for (Byte value : VariableByteEncoding.encode(posting.getDocumentId() - prevDocId))
-                {
                     invlistDOS.write(value.byteValue());
-                }
+
+                // Write variable byte encoded frequency to inverted list file
                 for (Byte value : VariableByteEncoding.encode(posting.getFrequency()))
-                {
                     invlistDOS.write(value.byteValue());
-                }
-                //invlistDOS.writeInt(posting.getDocumentId());
-                //invlistDOS.writeInt(posting.getFrequency());
-                
+
                 prevDocId = posting.getDocumentId();
             }
 
+            // Write delimited term details to lexicon:
+            //   term
+            //   frequency (number of docs containing term)
+            //   inverted list address (byte offset of postings list in inverted list file)
+            //   inverted list size (number of bytes occupied by inverted list - for input buffering)
             byteLen = invlistDOS.size() - bytePos;
             lexiconWriter.println(term + LEXICON_DELIM
                     + index.get(term).getFrequency() + LEXICON_DELIM

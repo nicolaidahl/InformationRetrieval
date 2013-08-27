@@ -5,6 +5,7 @@
 
 The stopping as well as the indexing module have been implemented using the delegation design pattern. The stopper module's sole responsibility is to check if a word passed to it is in the stoplist provided when calling the indexing program\,\cite{princeton}.
 
-To perform constant-time lookups in the stoplist we used a standard Java HashSet of strings. We utilize the standard Java string hash function to distribute keys between the buckets, as it has been shown to have an even distribution of hash values when used with random string values\,\cite{javamex}. Since the size and average character distribution of the stoplist is not known in advance it is necessary to use a hash function that can provide a reasonably even distribution of hash values over a random collection of strings.
+\subsection{Hash Table}
+To perform constant-time lookups in the stoplist we used a standard Java HashSet of strings, which is internally represented as a hash table\,\cite{hashset}. We utilize the standard Java string hash function to distribute keys between the buckets, as it has been shown to have an even distribution of hash values when used with random string values\,\cite{javamex}. Since the size and average character distribution of the stoplist is not known in advance it is necessary to use a hash function that can provide a reasonably even distribution of hash values over a random collection of strings.
 
 When collating terms, the parser simply checks the stopper for the existence of each term in the stoplist. If the term exists in the stoplist it is discarded and the parser moves on.

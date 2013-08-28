@@ -21,8 +21,12 @@ public class SimpleIndexerModule implements IndexerModule
         this.index = new HashMap<String, PostingsList>();
     }
 
-    /* Index an individual word.
-     * Avoid adding word by word if possible, addDocument is _much_ faster */
+    /**
+     * Index an individual word.
+     * Avoid adding word by word if possible, addDocument is _much_ faster
+     * @param term Which term to index
+     * @param documentId The documentId of the document in which the term occurs
+     */
     public void indexWord(String term, int documentId)
     {
         if (!(index.containsKey(term)))
@@ -31,6 +35,11 @@ public class SimpleIndexerModule implements IndexerModule
         index.get(term).updatePosting(documentId);
     }
 
+    /**
+     * Add a whole document's term frequencies to the index
+     * @param documentId The documentId of the document to add to the index
+     * @param termList A hash map of terms and their within-document frequencies to add to the index
+     */
     public void addDocument(int documentId, HashMap<String, Integer> termList)
     {
         for (String term : termList.keySet())
@@ -46,6 +55,12 @@ public class SimpleIndexerModule implements IndexerModule
         }
     }
 
+    /**
+     * Write the index out to disk
+     * @param lexicon The file to write the lexicon to
+     * @param invlist The file to write the inverted list to
+     * @throws IOException If writing to either file fails
+     */
     public void writeIndex(File lexicon, File invlist) throws IOException
     {
         PrintWriter lexiconWriter = new PrintWriter(lexicon);

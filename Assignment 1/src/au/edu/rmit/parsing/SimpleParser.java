@@ -363,7 +363,7 @@ public class SimpleParser
     /**
      * The public interface of the SimpleParser to allow parsing of a query term
      * @param queryString The query string to be parsed
-     * @return 
+     * @return A list of tokens
      */
     public ArrayList<String> parseQueryString(String queryString)
     {

@@ -32,6 +32,11 @@ public class SimpleQueryEngine implements QueryEngine
         readLexicon();
     }
 
+    /**
+     * Search for a term in the inverted index
+     * @param term The string to search for
+     * @return a SearchResult containing the result of the search for further processing
+     */
     public SearchResult getSearchResult(String term)
     {
         if (!lexiconList.containsKey(term))
@@ -111,6 +116,10 @@ public class SimpleQueryEngine implements QueryEngine
         return new SearchResult(term, termPosting.getPostingsAsArrayList(), documentFreq);
     }
 
+    /**
+     * Read the inverted index lexicon from disk.
+     * Uses the lexiconFile stored in the object by the constructor.
+     */
     private void readLexicon() 
     {
         BufferedReader br;
@@ -143,7 +152,10 @@ public class SimpleQueryEngine implements QueryEngine
         
     }
 
-    /* Class to hold term information read in from lexicon */
+    /**
+     * Class to hold term information read in from lexicon.
+     * Only used internally.
+     */
     private static class LexiconTerm
     {
         public int documentFreq;

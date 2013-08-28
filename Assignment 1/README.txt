@@ -5,8 +5,6 @@ Daniel Jonathan Smith s3361789
 
 === Running details ===
 
-First, mkdir bin
-
 Indexing
 --------
 

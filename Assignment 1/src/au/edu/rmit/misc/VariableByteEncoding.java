@@ -4,7 +4,11 @@ import java.util.ArrayList;
 
 public class VariableByteEncoding {
 
-    // Encode an integer into a variable byte array.
+    /**
+     * Encode an integer into a variable byte array.
+     * @param value Integer to encode
+     * @return An array of Bytes containing the variable byte coded integer
+     */
     public static Byte[] encode(int value)
     {
         ArrayList<Byte> byteArray = new ArrayList<Byte>();
@@ -25,7 +29,11 @@ public class VariableByteEncoding {
         return byteArray.toArray(new Byte[0]);
     }
 
-    // Decode byte array of variable byte encoded integers into its constituent parts
+    /**
+     * Decode byte array of variable byte encoded integers into its constituent parts
+     * @param bytes An array of Bytes containing some number of variable byte coded integers
+     * @return An array of integers as decoded from the array of bytes
+     */
     public static Integer[] decode(Byte[] bytes)
     {
         ArrayList<Integer> values = new ArrayList<Integer>();

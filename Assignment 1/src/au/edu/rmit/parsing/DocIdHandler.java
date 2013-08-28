@@ -15,12 +15,17 @@ import java.util.ArrayList;
 public class DocIdHandler {
     ArrayList<String> docIdMap;
 
+    /**
+     * Create new DocIdHandler with empty document Id map
+     */
     public DocIdHandler()
     {
         docIdMap = new ArrayList<String>();
     }
 
-    // If instantiated with a file name load index in straight away
+    /**
+     * Create new DocIdHandler with pre-existing document Id map read in from file.
+     */
     public DocIdHandler(File mapFile)
     {
         this();
@@ -33,6 +38,12 @@ public class DocIdHandler {
         return (docIdMap.size() - 1);
     }
 
+    /**
+     * Get the raw document ID for the given internal document ID
+     * @param documentId The internal numeric document Id to retrieve
+     * @return The plain text raw document Id as read in from the document collection
+     * @throws InvalidDocumentIdException If internal document Id not found
+     */
     public String getRawDocumentId(int documentId)
             throws InvalidDocumentIdException
     {
@@ -50,6 +61,11 @@ public class DocIdHandler {
         return rawDocId;
     }
 
+    /**
+     * Write the document Id map to disk
+     * @param mapFile Output file
+     * @throws FileNotFoundException If file not found
+     */
     public void writeMap(File mapFile) throws FileNotFoundException
     {
         PrintWriter mapWriter = new PrintWriter(mapFile);
@@ -62,7 +78,12 @@ public class DocIdHandler {
         mapWriter.close();
     }
 
-    public void readMap(File mapFile)
+    /**
+     * Read in a document Id map to a newly created DocIdHandler.
+     * This is only used when instantiating a new DocIdHandler.
+     * @param mapFile Input map file
+     */
+    private void readMap(File mapFile)
     {
         try (InputStream in = new FileInputStream(mapFile);
              Reader reader = new InputStreamReader(in, Charset.defaultCharset());

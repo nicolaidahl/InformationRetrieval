@@ -16,6 +16,11 @@ public class SimpleStopperModule implements StopperModule
         stoppedWords = readStopWordsFromFile(file);        
     }
     
+    /**
+     * Read in stop words from file.
+     * @param file The file containing the stop words to read
+     * @return A hash set of stop words read from the file
+     */
     private HashSet<String> readStopWordsFromFile(File file)
     {
     	HashSet<String> words = new HashSet<String>();
@@ -43,6 +48,12 @@ public class SimpleStopperModule implements StopperModule
     }
 
 
+    /**
+     * Check if a word is a stop word.
+     * @param word To check for in stop words list
+     * @return <code>true</code> if word is in stop words list
+     *         <code>false</code> otherwise
+     */
     public boolean isStopWord(String word)
     {
         if(stoppedWords.contains(word))

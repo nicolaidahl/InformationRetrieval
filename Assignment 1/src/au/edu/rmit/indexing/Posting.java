@@ -26,6 +26,11 @@ public class Posting
         return frequency;
     }
 
+    public void addFrequency(int frequency)
+    {
+        this.frequency += frequency;
+    }
+
     public void incrementFrequency()
     {
         frequency++;

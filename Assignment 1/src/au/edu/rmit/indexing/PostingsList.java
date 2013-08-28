@@ -10,6 +10,11 @@ public class PostingsList {
         postingsList = new ArrayList<Posting>();
     }
 
+    /**
+     * Add a posting to the postings list
+     * @param documentId The document Id of the posting to be added to the postings list
+     * @param inDocumentFreq The term frequency of the new posting
+     */
     public void addPosting(int documentId, int inDocumentFreq)
     {
         Posting newPosting = new Posting(documentId, inDocumentFreq);
@@ -17,6 +22,7 @@ public class PostingsList {
         /* Check if the new documentId is greater than the last in the postingsList.
          * If so, add to the end.
          * If not, insert in natural sort order
+         *    or increment frequency if posting already exists
          *
          * This guarantees the list will be sorted but still have constant-time insertion
          *   when adding documents sequentially.
@@ -28,6 +34,8 @@ public class PostingsList {
             {
                 if (postingsList.get(i).getDocumentId() > documentId)
                     postingsList.add(i, newPosting);
+                else if (postingsList.get(i).getDocumentId() == documentId)
+                    postingsList.get(i).addFrequency(inDocumentFreq);
             }
         }
         else
@@ -36,7 +44,11 @@ public class PostingsList {
         }
     }
 
-    // Update an individual posting
+    /**
+     * Update an individual posting
+     * @param documentId The document Id of the posting to be updated
+     * @param inDocumentFreq The term frequency to add
+     */
     public void updatePosting(int documentId, int inDocumentFreq)
     {
         Posting newPosting = new Posting(documentId, inDocumentFreq);
@@ -48,7 +60,7 @@ public class PostingsList {
         }
         else
         {
-            postingsList.get(postingIndex).incrementFrequency();
+            postingsList.get(postingIndex).addFrequency(inDocumentFreq);
         }
     }
 

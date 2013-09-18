@@ -1,0 +1,34 @@
+\documentclass[oribibl]{llncs}
+\pagestyle{headings} %page numbers
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{pdfpages}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage[T1]{fontenc} % Fixed missing font warning for \maketitle
+\usepackage[margin=1.5in]{geometry}
+
+
+
+\bibliographystyle{plain}
+
+
+\begin{document}
+\mainmatter
+\title{Assignment 1: Indexing}
+\author{Nicolai Dahl Blicher-Petersen \and Daniel Jonathan Smith \\
+\email{\{s3441163, s3361789\}@student.rmit.edu.au}}
+\institute{RMIT}
+
+\maketitle
+
+\input{sections/rankedRetrieval.tex}
+\newpage
+\input{sections/advancedIRFeature.tex}
+\newpage
+
+\bibliography{report}
+
+\end{document}

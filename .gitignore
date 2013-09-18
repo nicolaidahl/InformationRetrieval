@@ -33,6 +33,9 @@
 *.ear
 .DS_STORE
 
+# Sublime Text 2 #
+*.sublime-*
+
 # Custom files #
 Assignment\ 1/invlist
 Assignment\ 1/lexicon

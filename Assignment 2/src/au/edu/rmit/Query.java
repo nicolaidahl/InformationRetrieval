@@ -152,6 +152,7 @@ public class Query {
     	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile);
     	DocIdHandler docIdHandler = new DocIdHandler(mapFile);
     	
+    	
     	for (String term : parsedTerms)
     	{
             // Retrieve search result from query engine and print results.

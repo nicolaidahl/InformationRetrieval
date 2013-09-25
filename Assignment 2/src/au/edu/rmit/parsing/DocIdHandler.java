@@ -13,7 +13,9 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class DocIdHandler {
-    ArrayList<String> docIdMap;
+    private ArrayList<String> docIdMap;
+    private ArrayList<Integer> documentLengths;
+    private double averageDocumentLength;
 
     /**
      * Create new DocIdHandler with empty document Id map
@@ -21,6 +23,7 @@ public class DocIdHandler {
     public DocIdHandler()
     {
         docIdMap = new ArrayList<String>();
+        documentLengths = new ArrayList<Integer>();
     }
 
     /**
@@ -35,7 +38,13 @@ public class DocIdHandler {
     public int getDocumentId(String rawDocumentId)
     {
         docIdMap.add(rawDocumentId);
+        documentLengths.add(0);
         return (docIdMap.size() - 1);
+    }
+    
+    public void setDocumentLength(int documentId, int docLength)
+    {
+    	documentLengths.set(documentId, docLength);
     }
 
     /**
@@ -72,7 +81,7 @@ public class DocIdHandler {
 
         for (int i = 0; i < docIdMap.size(); i++)
         {
-            mapWriter.println(docIdMap.get(i));
+            mapWriter.println(docIdMap.get(i) + " " + documentLengths.get(i));
         }
 
         mapWriter.close();
@@ -85,19 +94,31 @@ public class DocIdHandler {
      */
     private void readMap(File mapFile)
     {
+    	int totalDocLengths = 0;
+    	
         try (InputStream in = new FileInputStream(mapFile);
              Reader reader = new InputStreamReader(in, Charset.defaultCharset());
              BufferedReader mapReader = new BufferedReader(reader))
         {
-            String rawDocId;
+            String rawDocIdAndLength;
 
             // Map file writes out docIds sequentially, so line 1 = 0, line 2 = 1 etc.
-            while ((rawDocId = mapReader.readLine()) != null)
+            while ((rawDocIdAndLength = mapReader.readLine()) != null)
             {
+            	String[] splitted = rawDocIdAndLength.split(" ");
+            	String rawDocId = splitted[0];
+            	int docLength = Integer.parseInt(splitted[1]);
+            	
                 // Make sure it wasn't a blank index
                 if (!rawDocId.isEmpty())
-                    docIdMap.add(rawDocId);
-            }          
+                {
+                	docIdMap.add(rawDocId);
+                	totalDocLengths += docLength;
+                }
+                    
+            }  
+            
+            averageDocumentLength = ((double)totalDocLengths) / docIdMap.size();
         }
         catch (IOException e)
         {
@@ -105,4 +126,14 @@ public class DocIdHandler {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Gets the eagerly initialized average document length. The length will be 0
+     * if it has not yet been computed.
+     * @return
+     */
+	public double getAverageDocumentLength()
+	{
+		return averageDocumentLength;
+	}
 }

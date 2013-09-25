@@ -27,6 +27,7 @@ public class SimpleParser
     
     //Buffered terms
     HashMap<String, Integer> docTermList;
+    int documentLength;
     
     //Indicating if each term found should be printed
     boolean shouldPrintTerms;
@@ -49,6 +50,7 @@ public class SimpleParser
         this.indexerModule = indexerModule;
         this.documentHandler = documentHandler;
         this.shouldPrintTerms = shouldPrintTerms;
+        this.documentLength = 0;
         
         commonPrefixes = new HashSet<String>(Arrays.asList("co", "pre", "meta", "multi", "auto", 
         		"circum", "com", "con", "contra", "de", "dis", "en", "ex", "extra", "hetero", "homo", 
@@ -272,6 +274,7 @@ public class SimpleParser
                         if(tagName.equals("DOC"))
                         {
                             inDocument = true;
+                            
                         }
                         //It was the beginning of the document number
                         else if(tagName.equals("DOCNO"))
@@ -282,7 +285,7 @@ public class SimpleParser
                             // Get new docId and initialise term list
                             currentDocId = documentHandler.getDocumentId(rawDocId.trim());
                             docTermList = new HashMap<String, Integer>();
-                            
+                            documentLength = 0;
                             
                         }
                         //It was the beginning of content
@@ -304,6 +307,7 @@ public class SimpleParser
 					                	{
 						                	docTermList.put(term, new Integer(1));
 					                	}
+										documentLength += term.getBytes().length;
 									}
 									
 								}
@@ -325,6 +329,7 @@ public class SimpleParser
                             inDocument = false;
                         	// Add current document to term list
                         	indexerModule.addDocument(currentDocId, docTermList);
+                        	documentHandler.setDocumentLength(currentDocId, documentLength);
                         }
 
                         if(tagName.equals("DOCNO"))

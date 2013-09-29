@@ -10,8 +10,8 @@ import au.edu.rmit.parsing.InvalidDocumentIdException;
 
 public class BM25RankedQueryEngine extends QueryEngine {
     // Okapi BM25 constants
-    public static final double k1 = 1.2;
-    public static final double b = 0.75;
+    private static final double k1 = 1.2;
+    private static final double b = 0.75;
     
     int numResults;
 
@@ -21,6 +21,22 @@ public class BM25RankedQueryEngine extends QueryEngine {
         this.numResults = numResults;
     }
 
+    public static double getDocumentWeight(int documentLength, double averageDocumentLength)
+    {
+        // k1 * ((1 - b) + ((b * Ld) / AL))
+        return BM25RankedQueryEngine.k1 *
+               (
+                 (1.0 - BM25RankedQueryEngine.b)
+                 +
+                 (
+                   (BM25RankedQueryEngine.b * Double.valueOf(documentLength))
+                   /
+                   averageDocumentLength
+                 )
+               );
+
+    }
+    
     public QueryResult[] getResults(String[] queryTerms)
     {
         HashMap<Integer, Double> accumulatorHash = new HashMap<Integer, Double>();

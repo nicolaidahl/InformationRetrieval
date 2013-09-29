@@ -126,18 +126,7 @@ public class DocIdHandler {
         for (int i = 0; i < docIdMap.size(); i++)
         {
             // calculate Okapi BM25 document weight
-            // k1 * ((1 - b) + ((b * Ld) / AL))
-            documentWeight =
-                    BM25RankedQueryEngine.k1 *
-                    (
-                      (1.0 - BM25RankedQueryEngine.b)
-                      +
-                      (
-                        (BM25RankedQueryEngine.b * documentLengths.get(i).doubleValue())
-                        /
-                        averageDocumentLength
-                      )
-                    );
+            documentWeight = BM25RankedQueryEngine.getDocumentWeight(documentLengths.get(i), averageDocumentLength);
 
             mapWriter.println(docIdMap.get(i) + " " + documentWeight);
         }

@@ -82,12 +82,11 @@ public class Index {
         DocIdHandler documentHandler = new DocIdHandler();
 
         Timer timer = new Timer();
-        timer.start();
 
         SimpleParser p = new SimpleParser(stopper, indexer, documentHandler, shouldPrintTerms);
         p.parseFile(inputFile);
 
-        timer.stamp("Parse");
+        timer.stamp("Parse and build index");
         
         // Write index and map to disk
         File lexicon = new File("lexicon");
@@ -102,7 +101,7 @@ public class Index {
             e.printStackTrace();
         }
         
-        timer.stamp("Index");
+        timer.stamp("Write index to disk");
         
         System.out.println(timer.getTimings());
     }

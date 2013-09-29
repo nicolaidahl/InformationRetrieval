@@ -147,8 +147,6 @@ public class Query {
     	SimpleParser parser = new SimpleParser(stopperModule, null, null, false);
     	ArrayList<String> parsedTerms = parser.parseQueryString(searchTerms.toString());
     	
-    	System.out.println(parsedTerms);
-
     	QueryEngine engine;
         // Initialise query engine and document handler
     	if (simFunc == SimilarityFunction.BM25)
@@ -156,18 +154,22 @@ public class Query {
             engine = new BM25RankedQueryEngine(lexiconFile, invlistFile, mapFile, numResults);
             
             Timer timer = new Timer();
-            timer.start();
             
             QueryResult[] results = engine.getResults(parsedTerms.toArray(new String[0]));
                 
             int rank = 1;
-            for (QueryResult result : results)
+            //for (QueryResult result : results)
+            for (int i = results.length - 1; i >= 0; i--)
             {
-                System.out.println(String.format("%s %s %d %.3f", queryLabel, result.getRawDocId(), rank, result.getScore()));
+                System.out.println(String.format("%s %s %d %.3f",
+                        queryLabel,
+                        results[i].getRawDocId(),
+                        rank,
+                        results[i].getScore()));
                 rank++;
             }
 
-            timer.stamp(queryLabel);
+            timer.stamp("Running time");
             System.out.println(timer.getTimings());
     	}
     	else

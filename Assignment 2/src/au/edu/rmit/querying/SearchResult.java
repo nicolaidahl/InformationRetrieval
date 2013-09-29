@@ -14,7 +14,6 @@ public class SearchResult
 	public SearchResult(String searchTerm, ArrayList<Posting> postings,
 			int frequency)
 	{
-		super();
 		this.searchTerm = searchTerm;
 		this.postings = postings;
 		this.frequency = frequency;

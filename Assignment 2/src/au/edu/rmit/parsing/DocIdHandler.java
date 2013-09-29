@@ -12,11 +12,9 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import au.edu.rmit.querying.BM25RankedQueryEngine;
+
 public class DocIdHandler {
-    // Okapi BM25 constants
-    private static double k1 = 1.2;
-    private static double b = 0.75;
-    
     private ArrayList<String> docIdMap;
     private ArrayList<Integer> documentLengths;
     private ArrayList<Double> documentWeights;
@@ -29,6 +27,7 @@ public class DocIdHandler {
     {
         docIdMap = new ArrayList<String>();
         documentLengths = new ArrayList<Integer>();
+        documentWeights = new ArrayList<Double>();
     }
 
     /**
@@ -99,6 +98,11 @@ public class DocIdHandler {
         return docWeight;
     }   
 
+    
+    public int getNumberOfDocuments()
+    {
+        return docIdMap.size();
+    }
 
     /**
      * Write the document Id map to disk
@@ -113,11 +117,9 @@ public class DocIdHandler {
         Integer sumDocLength = 0;
         for (Integer docLength : documentLengths)
         {
-            System.out.println(docLength);
             sumDocLength += docLength;
         }
         averageDocumentLength = sumDocLength.doubleValue() / documentLengths.size();
-        System.out.println(averageDocumentLength);
         
         // Write document ID and document weight to map file
         Double documentWeight = 0.0;
@@ -126,17 +128,16 @@ public class DocIdHandler {
             // calculate Okapi BM25 document weight
             // k1 * ((1 - b) + ((b * Ld) / AL))
             documentWeight =
-                    k1 *
+                    BM25RankedQueryEngine.k1 *
                     (
-                      (1.0 - b)
+                      (1.0 - BM25RankedQueryEngine.b)
                       +
                       (
-                        (b * documentLengths.get(i).doubleValue())
+                        (BM25RankedQueryEngine.b * documentLengths.get(i).doubleValue())
                         /
                         averageDocumentLength
                       )
                     );
-            System.out.println(documentWeight);
 
             mapWriter.println(docIdMap.get(i) + " " + documentWeight);
         }

@@ -387,7 +387,6 @@ public class SimpleParser
 				public void handleTerm(String term)
 				{
 					outputTokens.add(term);
-					
 				}
 			});
 		} catch (IOException e)

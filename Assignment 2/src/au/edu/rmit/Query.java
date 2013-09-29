@@ -3,13 +3,12 @@ package au.edu.rmit;
 import java.io.File;
 import java.util.ArrayList;
 
-import au.edu.rmit.indexing.Posting;
 import au.edu.rmit.misc.SimilarityFunction;
-import au.edu.rmit.parsing.DocIdHandler;
-import au.edu.rmit.parsing.InvalidDocumentIdException;
+import au.edu.rmit.misc.Timer;
 import au.edu.rmit.parsing.SimpleParser;
+import au.edu.rmit.querying.BM25RankedQueryEngine;
 import au.edu.rmit.querying.QueryEngine;
-import au.edu.rmit.querying.SearchResult;
+import au.edu.rmit.querying.QueryResult;
 import au.edu.rmit.querying.SimpleQueryEngine;
 import au.edu.rmit.stopping.DummyStopperModule;
 import au.edu.rmit.stopping.SimpleStopperModule;
@@ -38,8 +37,8 @@ public class Query {
 
     	//Misc
     	String queryLabel = "";
-    	int numberOfResults = 0;
-    	SimilarityFunction simFunc = SimilarityFunction.BM25;
+    	int numResults = 0;
+    	SimilarityFunction simFunc = SimilarityFunction.NORANK;
     	boolean didSpecifyFiles = false;
     	
     	
@@ -66,7 +65,7 @@ public class Query {
 					break;
 				else
 					try{
-						numberOfResults = Integer.parseInt(args[i]);
+						numResults = Integer.parseInt(args[i]);
 					}
 					catch(NumberFormatException e){
 						printErrorMessageWithUsage("Number of results must be a natural number");
@@ -88,11 +87,11 @@ public class Query {
 					// Turn search terms from command line into a single string for parsing.
 			        // This ensures the same as rules are applied as indexing.
 			    	String delimiter = "";
-			    	
-			    	for(int j = 0; i + j < args.length; j++)
+
+			    	for( ; i < args.length; i++)
 			    	{
 			    	    searchTerms.append(delimiter);
-			    		searchTerms.append(args[i+j]);
+			    		searchTerms.append(args[i]);
 			    		delimiter = " ";
 			    	}
 				}
@@ -147,31 +146,49 @@ public class Query {
 
     	SimpleParser parser = new SimpleParser(stopperModule, null, null, false);
     	ArrayList<String> parsedTerms = parser.parseQueryString(searchTerms.toString());
+    	
+    	System.out.println(parsedTerms);
 
+    	QueryEngine engine;
         // Initialise query engine and document handler
-    	QueryEngine engine = new SimpleQueryEngine(lexiconFile, invlistFile);
-    	DocIdHandler docIdHandler = new DocIdHandler(mapFile);
-    	
-    	
-    	for (String term : parsedTerms)
+    	if (simFunc == SimilarityFunction.BM25)
     	{
-            // Retrieve search result from query engine and print results.
-    		SearchResult result = engine.getSearchResult(term);
-    		
-    		System.out.println(result.getSearchTerm());
-    		System.out.println(result.getFrequency());
+            engine = new BM25RankedQueryEngine(lexiconFile, invlistFile, mapFile, numResults);
+            
+            Timer timer = new Timer();
+            timer.start();
+            
+            QueryResult[] results = engine.getResults(parsedTerms.toArray(new String[0]));
+                
+            int rank = 1;
+            for (QueryResult result : results)
+            {
+                System.out.println(String.format("%s %s %d %.3f", queryLabel, result.getRawDocId(), rank, result.getScore()));
+                rank++;
+            }
 
-            // Get raw document ID for each posting from doc ID handler and print to stdout with frequency
-    		for (Posting posting : result.getPostings())
-			{
-				try {
-                    System.out.println(docIdHandler.getRawDocumentId(posting.getDocumentId()) + " " + posting.getFrequency());
-                } catch (InvalidDocumentIdException e) {
-                    System.out.println("Invalid document ID " + posting.getDocumentId() + " found in search results!");
-                }
-			}
+            timer.stamp(queryLabel);
+            System.out.println(timer.getTimings());
     	}
-    	
+    	else
+    	{
+            engine = new SimpleQueryEngine(lexiconFile, invlistFile, mapFile);
+
+        	for (String term : parsedTerms)
+        	{
+        	    System.out.println(term);
+
+        	    String[] termArray = new String[1];
+        	    termArray[0] = term;
+
+                QueryResult[] results = engine.getResults(termArray);
+                
+                for (QueryResult result : results)
+                {
+                    System.out.println(String.format("%s %s", queryLabel, result.getRawDocId()));
+                }
+        	}
+    	}
     	
     }
     

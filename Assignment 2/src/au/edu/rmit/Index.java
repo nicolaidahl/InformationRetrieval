@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import au.edu.rmit.indexing.IndexerModule;
 import au.edu.rmit.indexing.SimpleIndexerModule;
+import au.edu.rmit.misc.Timer;
 import au.edu.rmit.parsing.DocIdHandler;
 import au.edu.rmit.parsing.SimpleParser;
 import au.edu.rmit.stopping.DummyStopperModule;
@@ -80,8 +81,13 @@ public class Index {
         IndexerModule indexer = new SimpleIndexerModule();
         DocIdHandler documentHandler = new DocIdHandler();
 
+        Timer timer = new Timer();
+        timer.start();
+
         SimpleParser p = new SimpleParser(stopper, indexer, documentHandler, shouldPrintTerms);
         p.parseFile(inputFile);
+
+        timer.stamp("Parse");
         
         // Write index and map to disk
         File lexicon = new File("lexicon");
@@ -95,6 +101,10 @@ public class Index {
             System.err.println("Error while writing index files to disk.");
             e.printStackTrace();
         }
+        
+        timer.stamp("Index");
+        
+        System.out.println(timer.getTimings());
     }
 
 }

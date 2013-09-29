@@ -13,8 +13,13 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 public class DocIdHandler {
+    // Okapi BM25 constants
+    private static double k1 = 1.2;
+    private static double b = 0.75;
+    
     private ArrayList<String> docIdMap;
     private ArrayList<Integer> documentLengths;
+    private ArrayList<Double> documentWeights;
     private double averageDocumentLength;
 
     /**
@@ -69,6 +74,31 @@ public class DocIdHandler {
 
         return rawDocId;
     }
+    
+
+    /**
+     * Get the Okapi BM25 document weight for the given internal document ID
+     * @param documentId The internal numeric document Id to retrieve
+     * @return The Okapi BM25 document weight as calculated while indexing
+     * @throws InvalidDocumentIdException If internal document Id not found
+     */
+    public double getBM25DocumentWeight(int documentId)
+            throws InvalidDocumentIdException
+    {
+        double docWeight;
+        try
+        {
+            docWeight = documentWeights.get(documentId);
+        }
+        catch(IndexOutOfBoundsException e)
+        {
+            throw new InvalidDocumentIdException(
+                    "Document Id" + documentId + " does not exist");
+        }
+
+        return docWeight;
+    }   
+
 
     /**
      * Write the document Id map to disk
@@ -79,9 +109,36 @@ public class DocIdHandler {
     {
         PrintWriter mapWriter = new PrintWriter(mapFile);
 
+        // Calculate average document length
+        Integer sumDocLength = 0;
+        for (Integer docLength : documentLengths)
+        {
+            System.out.println(docLength);
+            sumDocLength += docLength;
+        }
+        averageDocumentLength = sumDocLength.doubleValue() / documentLengths.size();
+        System.out.println(averageDocumentLength);
+        
+        // Write document ID and document weight to map file
+        Double documentWeight = 0.0;
         for (int i = 0; i < docIdMap.size(); i++)
         {
-            mapWriter.println(docIdMap.get(i) + " " + documentLengths.get(i));
+            // calculate Okapi BM25 document weight
+            // k1 * ((1 - b) + ((b * Ld) / AL))
+            documentWeight =
+                    k1 *
+                    (
+                      (1.0 - b)
+                      +
+                      (
+                        (b * documentLengths.get(i).doubleValue())
+                        /
+                        averageDocumentLength
+                      )
+                    );
+            System.out.println(documentWeight);
+
+            mapWriter.println(docIdMap.get(i) + " " + documentWeight);
         }
 
         mapWriter.close();
@@ -94,8 +151,6 @@ public class DocIdHandler {
      */
     private void readMap(File mapFile)
     {
-    	int totalDocLengths = 0;
-    	
         try (InputStream in = new FileInputStream(mapFile);
              Reader reader = new InputStreamReader(in, Charset.defaultCharset());
              BufferedReader mapReader = new BufferedReader(reader))
@@ -107,18 +162,15 @@ public class DocIdHandler {
             {
             	String[] splitted = rawDocIdAndLength.split(" ");
             	String rawDocId = splitted[0];
-            	int docLength = Integer.parseInt(splitted[1]);
+            	double docWeight = Double.parseDouble(splitted[1]);
             	
                 // Make sure it wasn't a blank index
                 if (!rawDocId.isEmpty())
                 {
                 	docIdMap.add(rawDocId);
-                	totalDocLengths += docLength;
+                	documentWeights.add(docWeight);
                 }
-                    
             }  
-            
-            averageDocumentLength = ((double)totalDocLengths) / docIdMap.size();
         }
         catch (IOException e)
         {

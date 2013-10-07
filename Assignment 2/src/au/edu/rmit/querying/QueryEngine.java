@@ -159,4 +159,13 @@ public abstract class QueryEngine {
             this.invlistLength = invlistLength;
         }
     }
+    
+    protected int documentFrequencyForTerm(String term)
+    {
+    	LexiconTerm obj = lexiconList.get(term);
+    	if(obj != null)
+    		return obj.documentFreq;
+    	else
+    		return 0;
+    }
 }

@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.IOException;
 
 import au.edu.rmit.indexing.IndexerModule;
-import au.edu.rmit.indexing.SimpleIndexerModule;
+import au.edu.rmit.indexing.QueryExpansionIndexerModule;
+//import au.edu.rmit.indexing.SimpleIndexerModule;
 import au.edu.rmit.misc.Timer;
 import au.edu.rmit.parsing.DocIdHandler;
 import au.edu.rmit.parsing.SimpleParser;
@@ -78,7 +79,13 @@ public class Index {
     	else
     		stopper = new DummyStopperModule();
     	
-        IndexerModule indexer = new SimpleIndexerModule();
+    	File termMap = new File("termMap");
+    	File termLexicon = new File("termLex");
+    	File termIndex = new File("termIndex");
+    	
+        //IndexerModule indexer = new SimpleIndexerModule();
+    	IndexerModule indexer = new QueryExpansionIndexerModule(termMap, termLexicon, termIndex);
+
         DocIdHandler documentHandler = new DocIdHandler();
 
         Timer timer = new Timer();

@@ -17,7 +17,7 @@ import au.edu.rmit.parsing.DocIdHandler;
 
 public abstract class QueryEngine {
 	
-    private static final String LEXICON_DELIM = "\\|";
+    private static final String LEXICON_DELIM = " ";
 
     File lexiconFile;
     File invlistFile;

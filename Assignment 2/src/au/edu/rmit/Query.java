@@ -8,6 +8,7 @@ import au.edu.rmit.misc.Timer;
 import au.edu.rmit.parsing.SimpleParser;
 import au.edu.rmit.querying.BM25RankedQueryEngine;
 import au.edu.rmit.querying.QueryEngine;
+import au.edu.rmit.querying.QueryExpansionBM25QueryEngine;
 import au.edu.rmit.querying.QueryResult;
 import au.edu.rmit.querying.SimpleQueryEngine;
 import au.edu.rmit.stopping.DummyStopperModule;
@@ -41,14 +42,41 @@ public class Query {
     	SimilarityFunction simFunc = SimilarityFunction.NORANK;
     	boolean didSpecifyFiles = false;
     	
+    	//Files for Query Expansion
+        File termMap = null, termLexicon = null, termIndex = null;
     	
     	// Process command line options
     	for (int i = 0; i < args.length; i++)
 		{
     		String arg = args[i];
     		
-    		if (arg.equals("-BM25")) {
+    		if (arg.equals("-BM25"))
+    		{
     			simFunc = SimilarityFunction.BM25;
+    		}
+    		else if (arg.equals("-QEBM25"))
+    		{
+    			simFunc = SimilarityFunction.QEBM25;
+
+    			if(args.length - 3 > i)
+    			{
+    			    // Read in QE filenames from command line and make sure they exist
+    			    termLexicon = new File(args[i]);
+    			    validateFile(termLexicon, "QE lexicon");
+
+    			    i++;
+    			    termIndex = new File(args[i]);
+    			    validateFile(termIndex, "QE index");
+
+    			    i++;
+    			    termMap = new File(args[i]);
+    			    validateFile(termMap, "QE map");
+    			}
+    			else
+    			{
+    			    printErrorMessageWithUsage("Not enough files given as input. Please input a lexicon, inverted list and a map");
+    			    System.exit(-1);
+    			}
     		}
     		else if(arg.equals("-q"))
 			{
@@ -171,6 +199,11 @@ public class Query {
 
             timer.stamp("Running time");
             System.out.println(timer.getTimings());
+    	}
+    	else if (simFunc == SimilarityFunction.QEBM25) {
+            engine = new QueryExpansionBM25QueryEngine(lexiconFile, invlistFile, mapFile,
+                    termMap, termLexicon, termIndex,
+                    numResults);
     	}
     	else
     	{

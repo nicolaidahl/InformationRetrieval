@@ -34,7 +34,6 @@ public class BM25RankedQueryEngine extends QueryEngine {
                    averageDocumentLength
                  )
                );
-
     }
     
     public QueryResult[] getResults(String[] queryTerms)

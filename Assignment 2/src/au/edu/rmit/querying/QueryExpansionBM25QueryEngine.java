@@ -10,11 +10,14 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.PriorityQueue;
 
+import au.edu.rmit.indexing.InvalidTermIdException;
 import au.edu.rmit.indexing.TermIdHandler;
 import au.edu.rmit.misc.Toolbox;
 import au.edu.rmit.misc.VariableByteEncoding;
+import au.edu.rmit.parsing.DocIdHandler;
 
 public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 {
@@ -25,17 +28,20 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 	File termIndex;
     ArrayList<QELexiconDoc> QELexiconList;
     TermIdHandler termIdHandler;
+    int assumedCorrectResults; 
+    int appendedQueryTerms;
 
     public QueryExpansionBM25QueryEngine(File lexicon, File invlist, File mapFile,
-            File termMap, File termLexicon, File termIndex,
-            int numResults)
+            File termMap, File termLexicon, File termIndex, int assumedCorrectResults, int appendedQueryTerms)
     {
-        super(lexicon, invlist, mapFile, numResults);
+        super(lexicon, invlist, mapFile);
 
         this.termLexicon = termLexicon;
         this.termIndex = termIndex;
         this.termMap = termMap;
         QELexiconList = new ArrayList<QELexiconDoc>();
+        this.assumedCorrectResults = assumedCorrectResults;
+        this.appendedQueryTerms = appendedQueryTerms;
 
         // Read index when query engine is created
         readQELexicon();
@@ -44,16 +50,12 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
     }
 
 	@Override
-	public QueryResult[] getResults(String[] queryTerms)
+	public QueryResult[] getResults(String[] queryTerms, int numResults)
 	{
-        QueryResult[] initialResults = super.getResults(queryTerms);
+        QueryResult[] initialResults = super.getResults(queryTerms, assumedCorrectResults);
           
         //Calculate TSVs using the initial results
-        ArrayList<String> rawDocIDs = new ArrayList<String>();
-        for (QueryResult res : initialResults)
-			rawDocIDs.add(res.getRawDocId());
-
-        String[] newTerms = findNewTermsFromDocuments(rawDocIDs.toArray(new String[0]), 25);
+        String[] newTerms = findNewTermsFromDocuments(initialResults, appendedQueryTerms);
         
         //Append some terms
         ArrayList<String> expandedQuery = new ArrayList<String>(Arrays.asList(queryTerms));
@@ -61,17 +63,17 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
         String[] expandedQueryArray = expandedQuery.toArray(new String[0]);  
         
         //Compute the final results 
-        QueryResult[] finalResults = super.getResults(expandedQueryArray);
+        QueryResult[] finalResults = super.getResults(expandedQueryArray, numResults);
 		return finalResults;
 	}
 
-	private String[] findNewTermsFromDocuments(String[] rawDocIDs, int E)
+	private String[] findNewTermsFromDocuments(QueryResult[] queryResults, int E)
 	{
-		int R = rawDocIDs.length;
+		int R = queryResults.length;
 		double N = docIdHandler.getNumberOfDocuments();
 		
-		String[] candidateTerms = findCandidateTerms();
-		PriorityQueue<CandidateTerm> pq = new PriorityQueue<CandidateTerm>(candidateTerms.length, 
+		HashMap<Integer, Integer> candidateTerms = findCandidateTerms(queryResults);
+		PriorityQueue<CandidateTerm> pq = new PriorityQueue<CandidateTerm>(candidateTerms.size(), 
 				new Comparator<CandidateTerm>()
 		{
 			@Override
@@ -85,10 +87,21 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		    }
 		});
 		
-		for (String candidate : candidateTerms)
+		for (Integer candidateId : candidateTerms.keySet())
 		{
+			String candidate = "";
+			try
+			{
+				candidate = termIdHandler.getTerm(candidateId);
+			} catch (InvalidTermIdException e)
+			{
+				//Just fail, something is very wrong
+				e.printStackTrace();
+			}
+			
 			double ft = documentFrequencyForTerm(candidate);
-			int rt = getRtForTerm(candidate, rawDocIDs);
+			//The number of initial documents that have the term
+			int rt = candidateTerms.get(candidateId); 
 			
 			double tsv = Math.pow(ft/N, rt) * Toolbox.choose(R, rt);
 			CandidateTerm t = new CandidateTerm(tsv, candidate);
@@ -102,17 +115,25 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		
 		return result.toArray(new String[0]);
 	}
-	
-	private int getRtForTerm(String term, String[] rawDocIDs)
-	{
-		return 0; //TODO
-		
-	}
 
-	private String[] findCandidateTerms()
+	private HashMap<Integer, Integer> findCandidateTerms(QueryResult[] queryResults)
 	{
-		//TODO IMPLEMENT
-		return new String[0];
+		HashMap<Integer, Integer> allCandidates = new HashMap<Integer, Integer>();
+		
+		for (QueryResult docId : queryResults)
+		{
+			String rawDocId = docId.getRawDocId();
+			ArrayList<Integer> termsInDoc = getTermList(docIdHandler.getDocumentId(rawDocId));
+			
+			for (Integer termId : termsInDoc)
+				if(allCandidates.containsKey(termId))
+					allCandidates.put(termId, allCandidates.get(termId) + 1);
+				else
+					allCandidates.put(termId, 1);
+			
+		}
+		
+		return allCandidates;
 	}
     
     /**
@@ -120,10 +141,10 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
      * @param docId the document ID to retrieve
      * @return an array of term IDs contained within the given document
      */
-    public Integer[] getTermList(int docId)
+    public ArrayList<Integer> getTermList(int docId)
     {
         if (docId > QELexiconList.size())
-            return new Integer[0];
+            return new ArrayList<Integer>();
 
         // Byte offset of postings list from lexicon.
         int filePosition = (int) QELexiconList.get(docId).filePosition;
@@ -176,7 +197,7 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
             e.printStackTrace();
         }
 
-        return termList.toArray(new Integer[0]);
+        return termList;
     }
 	
     /**

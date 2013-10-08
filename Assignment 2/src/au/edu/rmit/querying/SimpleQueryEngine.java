@@ -13,7 +13,7 @@ public class SimpleQueryEngine extends QueryEngine
         super(lexicon, invlist, mapFile);
     }
 
-    public QueryResult[] getResults(String[] queryTerms) {
+    public QueryResult[] getResults(String[] queryTerms, int numResults) {
         ArrayList<QueryResult> queryResults = new ArrayList<QueryResult>();
 
     	for (String term : queryTerms)

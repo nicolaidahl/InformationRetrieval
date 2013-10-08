@@ -13,12 +13,10 @@ public class BM25RankedQueryEngine extends QueryEngine {
     private static final double k1 = 1.2;
     private static final double b = 0.75;
     
-    int numResults;
 
-    public BM25RankedQueryEngine(File lexicon, File invlist, File mapFile, int numResults)
+    public BM25RankedQueryEngine(File lexicon, File invlist, File mapFile)
     {
         super(lexicon, invlist, mapFile);
-        this.numResults = numResults;
     }
 
     public static double getDocumentWeight(int documentLength, double averageDocumentLength)
@@ -27,7 +25,7 @@ public class BM25RankedQueryEngine extends QueryEngine {
         return k1 * ((1.0 - b) + ((b * Double.valueOf(documentLength)) / averageDocumentLength));
     }
     
-    public QueryResult[] getResults(String[] queryTerms)
+    public QueryResult[] getResults(String[] queryTerms, int numResults)
     {
         HashMap<Integer, Double> accumulatorHash = new HashMap<Integer, Double>();
         MinHeap minHeap = new MinHeap(numResults);

@@ -41,6 +41,8 @@ public class Query {
     	int numResults = 0;
     	SimilarityFunction simFunc = SimilarityFunction.NORANK;
     	boolean didSpecifyFiles = false;
+    	int assumedCorrectResults = 0;
+    	int appendedQueryTerms = 0;
     	
     	//Files for Query Expansion
         File termMap = null, termLexicon = null, termIndex = null;
@@ -61,7 +63,8 @@ public class Query {
     			if(args.length - 3 > i)
     			{
     			    // Read in QE filenames from command line and make sure they exist
-    			    termLexicon = new File(args[i]);
+    			    i++;
+    				termLexicon = new File(args[i]);
     			    validateFile(termLexicon, "QE lexicon");
 
     			    i++;
@@ -107,6 +110,32 @@ public class Query {
 					break;
 				else
 					stopFilePath = args[i];
+			}
+			else if(arg.equals("-r"))
+			{
+				i++;
+				if(i == args.length)
+					break;
+				else
+					try{
+						assumedCorrectResults = Integer.parseInt(args[i]);
+					}
+					catch(NumberFormatException e){
+						printErrorMessageWithUsage("Number of assumed correct results must be a natural number");
+					}
+			}
+			else if(arg.equals("-e"))
+			{
+				i++;
+				if(i == args.length)
+					break;
+				else
+					try{
+						appendedQueryTerms = Integer.parseInt(args[i]);
+					}
+					catch(NumberFormatException e){
+						printErrorMessageWithUsage("Number of appendedQueryTerms must be a natural number");
+					}
 			}
 			else
 			{
@@ -175,56 +204,50 @@ public class Query {
     	SimpleParser parser = new SimpleParser(stopperModule, null, null, false);
     	ArrayList<String> parsedTerms = parser.parseQueryString(searchTerms.toString());
     	
-    	QueryEngine engine;
+    	QueryEngine engine = null;
         // Initialise query engine and document handler
     	if (simFunc == SimilarityFunction.BM25)
     	{
-            engine = new BM25RankedQueryEngine(lexiconFile, invlistFile, mapFile, numResults);
+    		engine = new BM25RankedQueryEngine(lexiconFile, invlistFile, mapFile);
             
-            Timer timer = new Timer();
             
-            QueryResult[] results = engine.getResults(parsedTerms.toArray(new String[0]));
-                
-            int rank = 1;
-            //for (QueryResult result : results)
-            for (int i = results.length - 1; i >= 0; i--)
-            {
-                System.out.println(String.format("%s %s %d %.3f",
-                        queryLabel,
-                        results[i].getRawDocId(),
-                        rank,
-                        results[i].getScore()));
-                rank++;
-            }
-
-            timer.stamp("Running time");
-            System.out.println(timer.getTimings());
     	}
     	else if (simFunc == SimilarityFunction.QEBM25) {
-            engine = new QueryExpansionBM25QueryEngine(lexiconFile, invlistFile, mapFile,
-                    termMap, termLexicon, termIndex,
-                    numResults);
+    		if(assumedCorrectResults > 0 && appendedQueryTerms > 0)
+    		{
+    			engine = new QueryExpansionBM25QueryEngine(lexiconFile, invlistFile, mapFile,
+                        termMap, termLexicon, termIndex,
+                        assumedCorrectResults, appendedQueryTerms);
+    		}
+    		else
+    		{
+    			printErrorMessageWithUsage("To use QEBM25 please specify the -r and -e options with above-zero values.");
+    			System.exit(-1);
+    		}
     	}
     	else
     	{
-            engine = new SimpleQueryEngine(lexiconFile, invlistFile, mapFile);
-
-        	for (String term : parsedTerms)
-        	{
-        	    System.out.println(term);
-
-        	    String[] termArray = new String[1];
-        	    termArray[0] = term;
-
-                QueryResult[] results = engine.getResults(termArray);
-                
-                for (QueryResult result : results)
-                {
-                    System.out.println(String.format("%s %s", queryLabel, result.getRawDocId()));
-                }
-        	}
+    		engine = new SimpleQueryEngine(lexiconFile, invlistFile, mapFile);
     	}
     	
+    	Timer timer = new Timer();
+        
+        QueryResult[] results = engine.getResults(parsedTerms.toArray(new String[0]), numResults);
+            
+        int rank = 1;
+        //for (QueryResult result : results)
+        for (int i = results.length - 1; i >= 0; i--)
+        {
+            System.out.println(String.format("%s %s %d %.3f",
+                    queryLabel,
+                    results[i].getRawDocId(),
+                    rank,
+                    results[i].getScore()));
+            rank++;
+        }
+
+        timer.stamp("Running time");
+        System.out.println(timer.getTimings());
     }
     
     private static void validateFile(File file, String fileName)
@@ -240,8 +263,10 @@ public class Query {
     private static void printErrorMessageWithUsage(String error)
     {
     	System.err.println(error);
-    	System.err.println("USAGE: search -BM25 -q <query-label> -n <num-results> <lexicon> <invlists>" +
-    							"<map> [-s <stoplist>] <queryterm-1> [<queryterm-2> ...  <queryterm-N>]");
+    	System.err.println("USAGE: search [-BM25 | -QEBM25 <term-lexicon> <term-invlist> <term-map>] " +
+    							"-q <query-label> -n <num-results> <lexicon> <invlists>" +
+    							"<map> [-s <stoplist>] [-r <assumed-correct-results>] [-e <appended-query-terms>] " +
+    							"<queryterm-1> [<queryterm-2> ...  <queryterm-N>]");
     }
 
 }

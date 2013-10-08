@@ -38,7 +38,7 @@ public abstract class QueryEngine {
         docIdHandler = new DocIdHandler(mapFile);
     }
 
-    public abstract QueryResult[] getResults(String queryTerms[]);
+    public abstract QueryResult[] getResults(String queryTerms[], int numResults);
     
     /**
      * Search for a term in the inverted index

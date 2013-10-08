@@ -98,7 +98,7 @@ public class QueryExpansionIndexerModule implements IndexerModule
 
         for (Integer termId : termListForIndex)
         {
-            System.out.println(termId + " - " + (termId - prevTermId));
+            //System.out.println(termId + " - " + (termId - prevTermId));
             // Write variable byte encoded term ID to index file
             // Write gap between previous term ID and this one to save space
             for (Byte value : VariableByteEncoding.encode(termId - prevTermId))

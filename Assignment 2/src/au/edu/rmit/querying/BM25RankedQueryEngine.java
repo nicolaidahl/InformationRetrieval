@@ -24,16 +24,7 @@ public class BM25RankedQueryEngine extends QueryEngine {
     public static double getDocumentWeight(int documentLength, double averageDocumentLength)
     {
         // k1 * ((1 - b) + ((b * Ld) / AL))
-        return BM25RankedQueryEngine.k1 *
-               (
-                 (1.0 - BM25RankedQueryEngine.b)
-                 +
-                 (
-                   (BM25RankedQueryEngine.b * Double.valueOf(documentLength))
-                   /
-                   averageDocumentLength
-                 )
-               );
+        return k1 * ((1.0 - b) + ((b * Double.valueOf(documentLength)) / averageDocumentLength));
     }
     
     public QueryResult[] getResults(String[] queryTerms)

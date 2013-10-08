@@ -88,7 +88,7 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		for (String candidate : candidateTerms)
 		{
 			double ft = documentFrequencyForTerm(candidate);
-			int rt = 0; //TODO
+			int rt = getRtForTerm(candidate, rawDocIDs);
 			
 			double tsv = Math.pow(ft/N, rt) * Toolbox.choose(R, rt);
 			CandidateTerm t = new CandidateTerm(tsv, candidate);
@@ -103,6 +103,12 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		return result.toArray(new String[0]);
 	}
 	
+	private int getRtForTerm(String term, String[] rawDocIDs)
+	{
+		return 0; //TODO
+		
+	}
+
 	private String[] findCandidateTerms()
 	{
 		//TODO IMPLEMENT

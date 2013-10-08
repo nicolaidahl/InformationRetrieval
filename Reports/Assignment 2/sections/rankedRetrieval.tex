@@ -1,10 +1,14 @@
 %!TEX root = ../report.tex
 
 \section{Ranked Retrieval}
+Building on the inverted index created in assignment one, we have implemented the BM25 similarity function to efficiently rank documents with respect to an input query. The SimpleQueryEngine implemented in assignment one has been extended in a way that allows us to reuse loading of the inverted index and the document map. Furthermore, looking up the list of postings for a term is available through the getResult method\,\cite{dahlsmith13}.
 
-Create a plain text (or PDF) file called report.txt (or report.pdf). Create a heading called “Ranked Retrieval” in your report file In this section you should:
-• Explain your implementation of the BM25 similarity function. 
-• Clearly describe how you process a query of one or more terms. 
-• Explain the algorithms and data structures that you have used.
-This section should be no longer than one and a half pages.
-For all questions that involve writing a report, you must remember to cite any sources (including books, research papers, course notes, etc.) that you referred to while designing aspects of your programs.
+\subsection{Processing a Query}
+We also reuse the parser and stopper modules designed in the first assignment when first processing an input query. This way we ensure that the query terms are treated the same way as when building the index\,\cite{dahlsmith13}.
+
+\todo{explain the getResults method with reference to the algorithm/ranking function. Mention accumulators but don't mention MinHeap directly. It is explained below}
+
+\subsection{Data Structures}
+For the ranking algorithm two essential data structures are used. First of all we use a java HashMap for our accumulators with the document ID as key and the accumulated sum as value. This allows for constant-time read and put operations when updating the accumulator values\,\cite{hashmap}.
+
+The second data structure we take advantage of is the Min-heap\,\cite{wolfram13}. It is used in the final stage of the ranking procedure to retrieve the $n$ accumulators with the highest similarity scores. The Min-heap is specified to only allow $n$ elements in it, and every time a new accumulator is added it checks if the limit has been reached. If not, the accumulator's value is checked against that of the heap's root element and the accumulator is only added to the heap if it is of greater value than the root element. This is a constant-time operation, as the heapify routine, performed on insertion, is bound by the hight of the heap, which is constant. In total, the asymptotic complexity of finding the $n$ highest-valued elements is $O(n)$.

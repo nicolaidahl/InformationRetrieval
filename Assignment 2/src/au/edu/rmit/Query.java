@@ -209,11 +209,9 @@ public class Query {
     	if (simFunc == SimilarityFunction.BM25)
     	{
     		engine = new BM25RankedQueryEngine(lexiconFile, invlistFile, mapFile);
-            
-            
     	}
     	else if (simFunc == SimilarityFunction.QEBM25) {
-    		if(assumedCorrectResults > 0 && appendedQueryTerms > 0)
+    		if (assumedCorrectResults > 0 && appendedQueryTerms > 0)
     		{
     			engine = new QueryExpansionBM25QueryEngine(lexiconFile, invlistFile, mapFile,
                         termMap, termLexicon, termIndex,

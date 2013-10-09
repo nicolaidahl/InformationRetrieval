@@ -11,11 +11,13 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import au.edu.rmit.querying.BM25RankedQueryEngine;
 
 public class DocIdHandler {
     private ArrayList<String> docIdMap;
+    private HashMap<String, Integer> docIdHash;
     private ArrayList<Integer> documentLengths;
     private ArrayList<Double> documentWeights;
     private double averageDocumentLength;
@@ -26,6 +28,7 @@ public class DocIdHandler {
     public DocIdHandler()
     {
         docIdMap = new ArrayList<String>();
+        docIdHash = new HashMap<String, Integer>();
         documentLengths = new ArrayList<Integer>();
         documentWeights = new ArrayList<Double>();
     }
@@ -41,9 +44,20 @@ public class DocIdHandler {
 
     public int getDocumentId(String rawDocumentId)
     {
-        docIdMap.add(rawDocumentId);
-        documentLengths.add(0);
-        return (docIdMap.size() - 1);
+        if (docIdHash.containsKey(rawDocumentId))
+        {
+            return docIdHash.get(rawDocumentId);
+        }
+        else
+        {
+            docIdMap.add(rawDocumentId);
+            documentLengths.add(0);
+
+            int docId = (docIdMap.size() - 1);
+            docIdHash.put(rawDocumentId, docId);
+            
+            return docId;
+        }
     }
     
     public void setDocumentLength(int documentId, int docLength)
@@ -158,6 +172,7 @@ public class DocIdHandler {
                 if (!rawDocId.isEmpty())
                 {
                 	docIdMap.add(rawDocId);
+                	docIdHash.put(rawDocId, (docIdMap.size() - 1));
                 	documentWeights.add(docWeight);
                 }
             }  

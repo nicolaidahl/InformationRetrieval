@@ -1,7 +1,8 @@
 %!TEX root = ../report.tex
 
 \section{Ranked Retrieval}
-Building on the inverted index created in assignment one, we have implemented the BM25 similarity function to efficiently rank documents with respect to an input query. The SimpleQueryEngine implemented in assignment one has been extended in a way that allows us to reuse loading of the inverted index and the document map. Furthermore, looking up the list of postings for a term is available through the getResult method\,\cite{dahlsmith13}.
+\label{sec:rankedRetrieval}
+Building on the inverted index created in assignment one, we have implemented the BM25 similarity function to efficiently rank documents with respect to an input query. The SimpleQueryEngine implemented in assignment one has been extended in a way that allows us to reuse loading of the inverted index and the document map. Furthermore, looking up the list of postings for a term is available through the getResult method\,\cite{dahlsmith13}. The class that carries out the ranked retrieval is called BM25RankedQueryEngine.
 
 \subsection{Processing a Query}
 We also reuse the parser and stopper modules designed in the first assignment when first processing an input query. This way we ensure that the query terms are treated the same way as when building the index\,\cite{dahlsmith13}.

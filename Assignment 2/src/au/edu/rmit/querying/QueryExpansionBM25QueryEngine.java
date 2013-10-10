@@ -17,7 +17,6 @@ import au.edu.rmit.indexing.InvalidTermIdException;
 import au.edu.rmit.indexing.TermIdHandler;
 import au.edu.rmit.misc.Toolbox;
 import au.edu.rmit.misc.VariableByteEncoding;
-import au.edu.rmit.parsing.DocIdHandler;
 
 public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 {
@@ -102,8 +101,10 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 			double ft = documentFrequencyForTerm(candidate);
 			//The number of initial documents that have the term
 			int rt = candidateTerms.get(candidateId); 
+			double power = Math.pow(ft/N, rt);
+			long choose = Toolbox.choose(R, rt);
 			
-			double tsv = Math.pow(ft/N, rt) * Toolbox.choose(R, rt);
+			double tsv = power * choose;
 			CandidateTerm t = new CandidateTerm(tsv, candidate);
 			
 			pq.add(t);

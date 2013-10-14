@@ -2,14 +2,29 @@
 
 \section{Ranked Retrieval}
 \label{sec:rankedRetrieval}
-Building on the inverted index created in assignment one, we have implemented the BM25 similarity function to efficiently rank documents with respect to an input query. The SimpleQueryEngine implemented in assignment one has been extended in a way that allows us to reuse loading of the inverted index and the document map. Furthermore, looking up the list of postings for a term is available through the getResult method\,\cite{dahlsmith13}. The class that carries out the ranked retrieval is called BM25RankedQueryEngine.
+Building on the inverted index created in assignment one, we have implemented a simplified BM25 similarity function to efficiently rank documents with respect to an input query. The SimpleQueryEngine implemented in assignment one has been extended in a way that allows us to reuse loading of the inverted index and the document map. Furthermore, looking up the list of postings for a term is available through the getSearchResult method\,\cite{dahlsmith13}. The class that carries out the ranked retrieval is called BM25RankedQueryEngine.
 
-\subsection{Processing a Query}
+\subsection*{Indexing}
+The document weight component of the BM25 function, \(K = k_1 \cdot \left( \left(1 - b\right) + \frac{b \cdot L_d}{AL}\right)\), is calculated at indexing time to improve query speed.
+
+As each document is indexed its length in bytes is stored. Immediately before writing the full Document ID map to disk, the average of these document lengths is calculated. \(K\) is then calculated for each document and written to the document map on the same line as the document's raw Document ID, to be read in with the Document ID by the query program.
+
+\subsection*{Processing a Query}
+The lexicon and inverted list in the query program work in an identical manner to the SimpleQueryEngine implemented in assignment one. To minimise code duplication this code is implemented in a QueyEngine class, that is subclassed by the various classes implementing each querying method. The only difference is that the document weight calculated at the indexing stage is read in to the DocIdHandler. Similarly to the raw Document ID, the document weight is stored in an array, where it resides in the array index of its corresponding internal Document ID to allow constant time lookup.
+
 We also reuse the parser and stopper modules designed in the first assignment when first processing an input query. This way we ensure that the query terms are treated the same way as when building the index\,\cite{dahlsmith13}.
 
-\todo{explain the getResults method with reference to the algorithm/ranking function. Mention accumulators but don't mention MinHeap directly. It is explained below}
+\paragraph*{}
+The query engine first steps through each query term as returned by the parser. It first retrieves a list of documents that the term appears in from the inverted index. For each of these documents the simplified BM25 similarity score\\
+\begin{center}
+$BM25(t, D_d) = \log \left( \frac{N - f_t + 0.5}{f_t + 0.5} \right) \cdot \frac{(k_1 + 1) f_{d,t}}{K + f_{d,t}}$\\
+\end{center}
+is calculated for the current query term, where $K$ is the document weight calculated at the indexing stage and retrieved from the DocIdHandler as described above.
+If an accumulator already exists for this document the similarity score is added to the accumulator value, otherwise a new accumulator is created with the calculated similarity score as its value.
 
-\subsection{Data Structures}
-For the ranking algorithm two essential data structures are used. First of all we use a java HashMap for our accumulators with the document ID as key and the accumulated sum as value. This allows for constant-time read and put operations when updating the accumulator values\,\cite{hashmap}.
+Once all terms in the query have been processed in this way the top 10 accumulators are found by stepping over each and attempting to add to a MinHeap of size $n$, where $n$ is the desired number of results. An array is then created from the MinHeap, sorted by the accumulator value, and the Document IDs and accumulated similarity scores are returned as the query result.
 
-The second data structure we take advantage of is the Min-heap\,\cite{wolfram13}. It is used in the final stage of the ranking procedure to retrieve the $n$ accumulators with the highest similarity scores. The Min-heap is specified to only allow $n$ elements in it, and every time a new accumulator is added it checks if the limit has been reached. If not, the accumulator's value is checked against that of the heap's root element and the accumulator is only added to the heap if it is of greater value than the root element. This is a constant-time operation, as the heapify routine, performed on insertion, is bound by the hight of the heap, which is constant. In total, the asymptotic complexity of finding the $n$ highest-valued elements is $O(n)$.
+\subsection*{Data Structures}
+For the ranking algorithm two essential data structures are used. First of all we use a java HashMap to store our accumulators with the document ID as key and the accumulated ranking score as value. This allows for constant-time read and put operations when updating the accumulator values, which is essential for queries containing terms that appear in large amounts of documents\,\cite{hashmap}.
+
+The second data structure we take advantage of is the Min-heap\,\cite{wolfram13}. It is used in the final stage of the ranking procedure to retrieve the $n$ accumulators with the highest similarity scores. The Min-heap is specified to only allow $n$ elements in it, and every time a new accumulator is added it checks if the limit has been reached. If the heap is not yet full, the accumulator is added to the heap and the heap is heapified. If the heap is full, the accumulator's value is checked against that of the heap's root element and the accumulator is only added to the heap if it is of greater value than the root element. This allows us to check if an accumulator needs to be added in constant time, avoiding the extra cost that would be involved if all elements had to be checked. Heapifying the heap is a linear-time operation, as the heapify routine, performed on insertion, is bound by the height of the heap. In total, the asymptotic complexity of finding the $n$ highest-valued elements is $O(n)$.

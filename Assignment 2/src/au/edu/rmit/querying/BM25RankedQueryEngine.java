@@ -19,12 +19,28 @@ public class BM25RankedQueryEngine extends QueryEngine {
         super(lexicon, invlist, mapFile);
     }
 
+    /**
+     * Calculate the BM25 document weight for a given document given its length and the average document length of the collection
+     * k1 * ((1 - b) + ((b * Ld) / AL))
+     * where:
+     * Ld is the length of the document
+     * AL is the average document length for the collection
+     * k1 & b are predefined constants
+     * @param documentLength length of the document
+     * @param averageDocumentLength average document length of the collection
+     * @return the BM25 document weight
+     */
     public static double getDocumentWeight(int documentLength, double averageDocumentLength)
     {
-        // k1 * ((1 - b) + ((b * Ld) / AL))
         return k1 * ((1.0 - b) + ((b * Double.valueOf(documentLength)) / averageDocumentLength));
     }
     
+    /**
+     * Run a query against the inverted index
+     * @param queryTerms a list of terms to query
+     * @param numResults the number of results to return
+     * @return a list of QueryResults containing the document ID and ranking score for the top numResults documents
+     */
     public QueryResult[] getResults(String[] queryTerms, int numResults)
     {
         HashMap<Integer, Double> accumulatorHash = new HashMap<Integer, Double>();
@@ -57,8 +73,11 @@ public class BM25RankedQueryEngine extends QueryEngine {
 
                 int docTermFreq = posting.getFrequency();
 
+                // Calculate BM25 similarity score
                 double bm25Rank = rsjWeight * (((k1 + 1) * docTermFreq) / (docWeight + docTermFreq));
 
+                // If document is already in accumulator add similarity score value
+                // Otherwise add new accumulator initialised with similarity score
                 if (accumulatorHash.containsKey(docId))
                 {
                     accumulatorHash.put(docId, accumulatorHash.get(docId) + bm25Rank);
@@ -70,8 +89,10 @@ public class BM25RankedQueryEngine extends QueryEngine {
             }
         }
         
+        // Get the top numResults accumulators using a MinHeap
         for (Map.Entry<Integer, Double> finalScore : accumulatorHash.entrySet())
         {
+            // Only add to MinHeap if it is greater than the lowest MinHeap value
             if (finalScore.getValue() > minHeap.getLowestScore())
             {
                 try {

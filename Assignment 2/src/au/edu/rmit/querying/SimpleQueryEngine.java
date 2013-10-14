@@ -13,6 +13,13 @@ public class SimpleQueryEngine extends QueryEngine
         super(lexicon, invlist, mapFile);
     }
 
+    /**
+     * Run a query against the inverted index
+     * @param queryTerms a list of terms to query
+     * @param numResults the number of results to return
+     * @return a list of QueryResults containing the document ID and ranking score for the top numResults documents
+     *          note: for the simple query engine the rank is always 1 since no ranking is undertaken
+     */
     public QueryResult[] getResults(String[] queryTerms, int numResults) {
         ArrayList<QueryResult> queryResults = new ArrayList<QueryResult>();
 

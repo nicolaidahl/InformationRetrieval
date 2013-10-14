@@ -43,7 +43,7 @@ public abstract class QueryEngine {
     /**
      * Search for a term in the inverted index
      * @param term The string to search for
-     * @return a SearchResult containing the result of the search for further processing
+     * @return a SearchResult containing the list of postings for the term for further processing
      */
     public SearchResult getSearchResult(String term)
     {

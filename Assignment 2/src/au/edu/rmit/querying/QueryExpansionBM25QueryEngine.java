@@ -30,6 +30,17 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
     int assumedCorrectResults; 
     int appendedQueryTerms;
 
+    /**
+     * Initialise Query Engine 
+     * @param lexicon the lexicon file for the inverted index
+     * @param invlist the inverted list file for the inverted index
+     * @param mapFile the document map file
+     * @param termMap the term map file
+     * @param termLexicon the lexicon for the document-term (non-inverted) index
+     * @param termIndex the list file for the non-inverted index
+     * @param assumedCorrectResults the number of query results to use when determining terms to use for query expansion
+     * @param appendedQueryTerms the number of terms to expand the query by
+     */
     public QueryExpansionBM25QueryEngine(File lexicon, File invlist, File mapFile,
             File termMap, File termLexicon, File termIndex, int assumedCorrectResults, int appendedQueryTerms)
     {

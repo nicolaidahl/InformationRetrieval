@@ -11,7 +11,7 @@ As our advanced information retrieval feature we selected automatic query expans
 	\item Append the $E$ terms to the initial query and run the ranked retrieval procedure again. This is the final result.
 \end{enumerate}
 
-As the statistical method in step three, we use the Okapi Term Selection Value (TSV) approach to select a set of $E$ terms to extend the initial query with\,\cite{billerbeckzobel04}.
+As the statistical method in step three, we use the Okapi Term Selection Value (TSV) approach to select a set of $E$ terms to extend the initial query with\,\cite{billerbeckzobel04}\cite{Robertson_okapi/keenbowat}.
 
 \subsection*{Implementation}
 We have extended the BM25RankedQueryEngine presented in Section \ref{sec:rankedRetrieval} to handle the query expansion. The class is called QueryExpansionBM25QueryEngine and is automatically used as query engine if the $-QEBM25$ input flag is specified. The getResults method of the class follows the approach described above with the most difficult step being step 2, as the current invertedIndex does not allow us to retrieve all terms for a particular document. For step 1 of the algorithm we simply call the getResults method of the BM25RankedQueryEngine.

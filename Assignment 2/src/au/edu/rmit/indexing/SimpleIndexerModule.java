@@ -12,7 +12,7 @@ import au.edu.rmit.misc.VariableByteEncoding;
 
 public class SimpleIndexerModule implements IndexerModule
 {
-    private static final String LEXICON_DELIM = "|";
+    private static final String LEXICON_DELIM = " ";
 
     HashMap<String, PostingsList> index;
 

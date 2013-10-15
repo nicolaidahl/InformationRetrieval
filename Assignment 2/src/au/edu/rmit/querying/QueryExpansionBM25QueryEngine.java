@@ -18,20 +18,29 @@ import au.edu.rmit.indexing.TermIdHandler;
 import au.edu.rmit.misc.Toolbox;
 import au.edu.rmit.misc.VariableByteEncoding;
 
+/**
+ * This class extends the BM25 ranked retrieval functionality to provide query
+ * expansion to a given query.
+ *
+ */
 public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 {
     private static final String QE_LEXICON_DELIM = " ";
 	
+    //Input files of the term index
 	File termMap;
 	File termLexicon;
 	File termIndex;
-    ArrayList<QELexiconDoc> QELexiconList;
+
+	ArrayList<QELexiconDoc> QELexiconList;
     TermIdHandler termIdHandler;
-    int assumedCorrectResults; 
-    int appendedQueryTerms;
+    
+    //Input parameters
+    int assumedCorrectResults; //R 
+    int appendedQueryTerms; //E
 
     /**
-     * Initialise Query Engine 
+     * Initialize Query Engine 
      * @param lexicon the lexicon file for the inverted index
      * @param invlist the inverted list file for the inverted index
      * @param mapFile the document map file
@@ -59,13 +68,15 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
         termIdHandler = new TermIdHandler(termMap);
     }
 
-	@Override
+	
+    @Override
 	public QueryResult[] getResults(String[] queryTerms, int numResults)
 	{
+    	//The first run of the query expansion algorithm using the underlying ranked retrieval
         QueryResult[] initialResults = super.getResults(queryTerms, assumedCorrectResults);
           
         //Calculate TSVs using the initial results
-        String[] newTerms = findNewTermsFromDocuments(initialResults, appendedQueryTerms);
+        String[] newTerms = findNewTermsFromDocuments(initialResults, appendedQueryTerms, assumedCorrectResults);
         
         //Append some terms
         ArrayList<String> expandedQuery = new ArrayList<String>(Arrays.asList(queryTerms));
@@ -77,12 +88,22 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		return finalResults;
 	}
 
-	private String[] findNewTermsFromDocuments(QueryResult[] queryResults, int E)
+	
+	/**
+	 * Finds the terms to expand an initial query with.
+	 * @param queryResults Initial query results
+	 * @param E Number of new terms to find
+	 * @param R Assumed number of correct results
+	 * @return An array of new terms
+	 */
+	private String[] findNewTermsFromDocuments(QueryResult[] queryResults, int E, int R)
 	{
-		int R = queryResults.length;
 		double N = docIdHandler.getNumberOfDocuments();
 		
+		//Find the collection of candidate terms for query expansion
 		HashMap<Integer, Integer> candidateTerms = findCandidateTerms(queryResults);
+		
+		//Initializes a priority queue to act as a Minheap
 		PriorityQueue<CandidateTerm> pq = new PriorityQueue<CandidateTerm>(candidateTerms.size(), 
 				new Comparator<CandidateTerm>()
 		{
@@ -97,8 +118,10 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		    }
 		});
 		
+		//Run through the list of candidate terms and calculate the TSV
 		for (Integer candidateId : candidateTerms.keySet())
 		{
+			//Get the candidate term from the termIdHandler
 			String candidate = "";
 			try
 			{
@@ -118,9 +141,11 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 			double tsv = power * choose;
 			CandidateTerm t = new CandidateTerm(tsv, candidate);
 			
+			//Add to the Minheap
 			pq.add(t);
 		}
 		
+		//Get the E top results
 		ArrayList<String> result = new ArrayList<String>();
 		for (int i = 0; i < E; i++)
 			result.add(pq.poll().getTerm());
@@ -128,15 +153,24 @@ public class QueryExpansionBM25QueryEngine extends BM25RankedQueryEngine
 		return result.toArray(new String[0]);
 	}
 
+	/**
+	 * Finds all the candidate terms for a list of query results. Does not allow duplicate
+	 * entries but counts them.
+	 * @param queryResults List of query results to find candidate terms from
+	 * @return A HashMap from term id to number of documents that have the term occuring
+	 */
 	private HashMap<Integer, Integer> findCandidateTerms(QueryResult[] queryResults)
 	{
 		HashMap<Integer, Integer> allCandidates = new HashMap<Integer, Integer>();
 		
-		for (QueryResult docId : queryResults)
+		for (QueryResult qres : queryResults)
 		{
-			String rawDocId = docId.getRawDocId();
+			String rawDocId = qres.getRawDocId();
+			
+			//Get all terms in the document
 			ArrayList<Integer> termsInDoc = getTermList(docIdHandler.getDocumentId(rawDocId));
 			
+			//Add the terms to the HashMap
 			for (Integer termId : termsInDoc)
 				if(allCandidates.containsKey(termId))
 					allCandidates.put(termId, allCandidates.get(termId) + 1);

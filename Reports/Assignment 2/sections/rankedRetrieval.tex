@@ -22,7 +22,7 @@ $BM25(t, D_d) = \log \left( \frac{N - f_t + 0.5}{f_t + 0.5} \right) \cdot \frac{
 is calculated for the current query term, where $K$ is the document weight calculated at the indexing stage and retrieved from the DocIdHandler as described above.
 If an accumulator already exists for this document the similarity score is added to the accumulator value, otherwise a new accumulator is created with the calculated similarity score as its value.
 
-Once all terms in the query have been processed in this way the top 10 accumulators are found by stepping over each and attempting to add to a MinHeap of size $n$, where $n$ is the desired number of results. An array is then created from the MinHeap, sorted by the accumulator value, and the Document IDs and accumulated similarity scores are returned as the query result.
+Once all terms in the query have been processed in this way the top $n$ accumulators are found by stepping over each and attempting to add it to a MinHeap of size $n$, which is explained in the section below. Lastly, an array sorted by the accumulator value is then created from the MinHeap, and the Document IDs and accumulated similarity scores are returned as the query result.
 
 \subsection*{Data Structures}
 For the ranking algorithm two essential data structures are used. First of all we use a java HashMap to store our accumulators with the document ID as key and the accumulated ranking score as value. This allows for constant-time read and put operations when updating the accumulator values, which is essential for queries containing terms that appear in large amounts of documents\,\cite{hashmap}.
@@ -32,4 +32,4 @@ The second data structure we take advantage of is the Min-heap\,\cite{wolfram13}
 
 The Min-heap is specified to only allow $n$ elements in it, and every time a new accumulator is added it checks if the limit has been reached. If the heap is not yet full, the accumulator is added to the heap and the heap is heapified. If the heap is full, the accumulator's value is checked against that of the heap's root element and the accumulator is only added to the heap if it is of greater value than the root element. This allows us to check if an accumulator needs to be added in constant time, avoiding the extra cost that would be involved if all elements had to be checked.
 
-Heapifying the heap is a linear-time operation, as the heapify routine, performed on insertion, is bound by the height of the heap. In total, the asymptotic complexity of finding the $n$ highest-valued elements is $O(n)$.
+Heapifying the heap is a linear-time operation, as the heapify routine, performed on insertion, is bound by the height of the heap, which is constant. In total, the asymptotic complexity of finding the $n$ highest-valued elements is $O(n)$.

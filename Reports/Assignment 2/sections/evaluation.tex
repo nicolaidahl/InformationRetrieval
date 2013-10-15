@@ -5,11 +5,11 @@
 
 \setlength{\tabcolsep}{15pt}
 
-\subsection*{Query Results}
+\subsection{Query Results}
 
 \begin{tabular}{ l l }
 \textbf{BM25} & \textbf{BM25 with Query Expansion}\\
-\\
+              & $R = 10, E = 25$\\\\
 401 LA101790-0075 1 13.372 & 401 LA021490-0049 1 55.848\\
 401 LA021890-0100 2 12.814 & 401 LA050790-0042 2 49.818\\
 401 LA100890-0131 3 12.278 & 401 LA020790-0156 3 48.857\\
@@ -56,7 +56,8 @@ Running time: 33 ms & Running time: 83 ms
 \end{tabular}
 \newpage
 \begin{tabular}{ l l }
-\textbf{BM25} & \textbf{BM25 with Query Expansion}\\\\
+\textbf{BM25} & \textbf{BM25 with Query Expansion}\\
+              & $R = 10, E = 25$\\\\
 403 LA030689-0082 1 15.761 & 403 LA010790-0103 1 83.603\\
 403 LA071290-0133 2 15.621 & 403 LA020490-0136 2 71.175\\
 403 LA083089-0024 3 14.952 & 403 LA071290-0133 3 61.075\\
@@ -104,7 +105,7 @@ Running time: 64 ms & Running time: 116 ms
 \newpage
 \begin{tabular}{ l l }
 \textbf{BM25} & \textbf{BM25 with Query Expansion}\\
-\\
+              & $R = 10, E = 25$\\\\
 408 LA101490-0142 1 20.220 & 408 LA101490-0142 1 64.878\\
 408 LA062290-0070 2 18.324 & 408 LA101390-0102 2 61.602\\
 408 LA101390-0102 3 17.619 & 408 LA062290-0070 3 58.849\\
@@ -128,13 +129,14 @@ Running time: 64 ms & Running time: 116 ms
 Running time: 39 ms & Running time: 85 ms\\
 \end{tabular}
 
-\newpage
-\subsection*{P@10 Evaluation}
+\setlength{\tabcolsep}{5pt}
 
-The \textit{Precision at 10} metric describes the precision of a query after 10 answers have been seen. The P@10 score is equal to the number of relevant results divided by the number of answers, or $\frac{R}{10}$. This metric is often used since it reflects the relevance of the first page of search results returned by a web search engine, given the general default display of 10 answers per page. Since, as studies have shown, most users do not look past the first page of search results, this is a good general reflection of the relevance of the query result.
+\newpage
+\subsection{Precision at 10 (P@10) Evaluation}
+
+The \textit{Precision at 10} metric (P@10) describes the precision of a query after 10 answers have been seen. The P@10 score is equal to the number of relevant results divided by the number of answers, or $\frac{R}{10}$. This metric is often used since it reflects the relevance of the first page of search results returned by a web search engine, given the general default display of 10 answers per page. Since, as studies have shown, most users do not look past the first page of search results, this is a good general reflection of the relevance of the query result\,\cite{scholer13eval}\cite[p. 161]{manning2008introduction}.
 
 \paragraph*{}
-
 The provided queries were run using the BM25 and BM25 with query expansion (hereafter referred to as \textit{BM25QE}) querying methods.
 
 The BM25QE function can be run with varying values for $R$ (the number of top-ranked documents that are assumed to be relevant)and $E$ (the number of terms that should be appended to the original query). We first ran the given queries with several different values of $R$ and $E$ to choose optimal values for comparison.
@@ -157,12 +159,12 @@ The average relevance score using the P@10 metric (discussed in the next section
 \caption {Average P@10 score for BM25QE with different combinations of R and E}\label{table:BM25QEtest}
 \end{table}
 
-We can see that the P@10 relevance score is maximised when $R=10$, but there is not as definite a forerunner when setting $E$. As a result we chose to use several different values of $E$ in the comparison between BM25QE and BM25.
+We can see that the P@10 relevance score is maximised when $R=10$, but there is not as definite a forerunner when setting a value for $E$. As a result we chose to use several different values of $E$ in the comparison between BM25QE and BM25.
 
 \begin{table}
 \begin{center}
 \begin{tabular}{ c | c c c c }
-	Query & BM25 & BM25QE $E=10$&BM25QE $E=25$&BM25QE $E=30$\\
+	\textbf{Query} & BM25 & BM25QE $E=10$&BM25QE $E=25$&BM25QE $E=30$\\
 	\hline
 	401 & 0.1  & 0.0  & 0.0  & 0.0 \\
 	402 & 0.2  & 0.1  & 0.2  & 0.2 \\
@@ -175,8 +177,37 @@ We can see that the P@10 relevance score is maximised when $R=10$, but there is 
 \end{center}
 \caption {P@10 relevance score for each query method}\label{table:Pat10result}
 \end{table}
-
-Table \ref{table:Pat10result} lists the number of relevant documents listed in the top 10 ranked query results for each querying method.
+\newpage
+Table \ref{table:Pat10result} lists the P@10 score for each query by querying method. These results don't seem to show any significant difference in effectiveness between the different query methods. There are hints of a slightly more even distribution of P@10 scores between the different queries when using larger values of $E$ with the BM25QE method, but a larger sample size would be needed to confirm this.
 
 \newpage
-\subsection*{P@R Evaluation}
+\subsection{Mean Average Precision (MAP) Evaluation}
+The \textit{Mean Average Precision} metric (MAP) may provide a more useful comparison of our query methods. Since the MAP score takes account of both the ranking position of relevant documents (precision) and number of relevant documents retrieved (recall), where the P@10 metric measures only the recall of the query at 10 results, it may provide a more nuanced overview of the query results\,\cite[pp. 159-162]{manning2008introduction}. For example, it may prove to be the case that although recall is similar between the different query methods some return relevant documents at higher ranks.
+
+\paragraph*{}
+The MAP is calculated by first taking the average of the precision obtained after each document is retrieved for each query then taking the mean of these average precisions over all sample queries\,\cite[pp. 13-14]{scholer13eval}.
+
+We calculated the MAP over the 20 highest ranked query results for the BM25 ranking method as well as the BM25QE method with the same combinations of $R$ and $E$ evaluated with the P@10 metric. The results are recorded in Table \ref{table:MAPresult}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{ c | r r r r }
+	\textbf{Query} & BM25 & BM25QE $E=10$&BM25QE $E=25$&BM25QE $E=30$\\
+	\hline
+	401 &  1.754 &  0.000 &  0.000 &  0.000\\
+	402 &  4.147 &  0.941 &  1.267 &  2.419\\
+	403 & 38.950 & 63.874 & 57.024 & 54.207\\
+	405 &  2.315 & 15.062 & 14.563 & 10.907\\
+	408 &  5.746 &  4.265 &  3.205 &  4.808\\
+	\hline
+	MAP & 10.583 & 16.828 & 15.212 & 14.468\\
+\end{tabular}
+\end{center}
+\caption {Average Precision and Mean Average Precision \% for each query method}\label{table:MAPresult}
+\end{table}
+
+We can see that the MAP is significantly improved when using query expansion, which suggests a more precise querying method despite the lack of improvement shown in recall levels with the P@10 metric. On closer inspection, however, this is not as straightforward as it seems.
+
+Although there is an improvement in the MAP score for each variant of the BM25QE method, the average precision for individual queries did not consistently improve and indeed in some cases dramatically declined. As noted with the P@10 metric, a larger sample size would be needed to draw any meaningful conclusions from the data.
+
+Interestingly, consistent with the P@10 scores recorded earlier there seems to be some correlation between higher values of $E$ and a more even distribution of average precision across the different queries.
